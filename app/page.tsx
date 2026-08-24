@@ -25,7 +25,7 @@ export default function WelcomePage() {
 
         <div className="flex w-full max-w-sm flex-col gap-3">
           <Link
-            href="/onboarding"
+            href="/login"
             className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-[15px] font-semibold text-primary-foreground shadow-[0_12px_28px_-14px_rgba(30,58,138,0.7)] transition hover:bg-primary/92"
           >
             Bắt đầu xây dựng thương hiệu
