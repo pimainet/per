@@ -4,13 +4,16 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Sparkles } from 'lucide-react'
 
-import { getUserProgress, type UserProgress } from '@/lib/supabase/db'
+import { ensureUserProfile, getUserProgress, type UserProgress } from '@/lib/supabase/db'
 
 export default function WelcomePage() {
   const [progress, setProgress] = useState<UserProgress | null>(null)
 
   useEffect(() => {
-    getUserProgress().then(setProgress)
+    getUserProgress().then((p) => {
+    setProgress(p)
+    if (p.loggedIn) ensureUserProfile()
+  })
   }, [])
 
   const ctaHref = !progress?.loggedIn

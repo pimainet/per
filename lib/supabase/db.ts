@@ -29,6 +29,100 @@ export async function getCurrentUser() {
   return data.user
 }
 
+
+/** Tạo / cập nhật user_profiles */
+export async function ensureUserProfile() {
+  if (!isSupabaseConfigured()) {
+    return { ok: false as const, reason: 'not_configured' as const }
+  }
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false as const, reason: 'not_logged_in' as const }
+
+  const fullName =
+    (user.user_metadata?.full_name as string) ||
+    (user.user_metadata?.name as string) ||
+    user.email?.split('@')[0] ||
+    'User'
+
+  const { error } = await supabase.from('user_profiles').upsert(
+    {
+      id: user.id,
+      full_name: fullName,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'id' },
+  )
+
+  if (error) {
+    console.error('ensureUserProfile', error)
+    return { ok: false as const, reason: 'db_error' as const, message: error.message }
+  }
+  return { ok: true as const }
+}
+
+/** Lưu style tạm từ profile (trước khi có Style Lock thật) */
+export async function saveStyleProfile(profile = SAMPLE_BRAND_PROFILE, isTemporary = true) {
+  if (!isSupabaseConfigured()) {
+    return { ok: false as const, reason: 'not_configured' as const }
+  }
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false as const, reason: 'not_logged_in' as const }
+
+  const styleData = {
+    phongCach: profile.giongDieu.phongCach,
+    uuTien: profile.giongDieu.uuTien,
+    xungHo: profile.giongDieu.xungHo,
+    tranh: profile.giongDieu.tranh,
+    source: isTemporary ? 'from_brand_profile' : 'style_lock',
+  }
+
+  const { error } = await supabase.from('style_profiles').upsert(
+    {
+      user_id: user.id,
+      data: styleData,
+      is_temporary: isTemporary,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id' },
+  )
+
+  if (error) {
+    console.error('saveStyleProfile', error)
+    return { ok: false as const, reason: 'db_error' as const, message: error.message }
+  }
+  return { ok: true as const }
+}
+
+/** Ghi memory (phản hồi / sự kiện) */
+export async function addMemory(kind: string, content: string) {
+  if (!isSupabaseConfigured()) {
+    return { ok: false as const, reason: 'not_configured' as const }
+  }
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false as const, reason: 'not_logged_in' as const }
+
+  const { error } = await supabase.from('memories').insert({
+    user_id: user.id,
+    kind,
+    content,
+  })
+
+  if (error) {
+    console.error('addMemory', error)
+    return { ok: false as const, reason: 'db_error' as const, message: error.message }
+  }
+  return { ok: true as const }
+}
+
 export async function getUserProgress(): Promise<UserProgress> {
   const empty: UserProgress = {
     loggedIn: false,
@@ -110,6 +204,14 @@ export async function saveBrandProfile(input: {
     return { ok: false as const, reason: 'db_error' as const, message: error.message }
   }
 
+  await ensureUserProfile()
+  if (locked) {
+    await saveStyleProfile(nextData.profile || SAMPLE_BRAND_PROFILE, true)
+    await addMemory('profile_locked', 'User đã khóa Brand Profile')
+  } else {
+    await addMemory('onboarding_saved', 'User đã lưu câu trả lời onboarding')
+  }
+
   return { ok: true as const }
 }
 
@@ -175,6 +277,8 @@ export async function saveRoadmap(roadmap = SAMPLE_ROADMAP) {
     console.error('saveRoadmap', error)
     return { ok: false as const, reason: 'db_error' as const, message: error.message }
   }
+  await ensureUserProfile()
+  await addMemory('roadmap_confirmed', 'User đã xác nhận lộ trình giai đoạn')
   return { ok: true as const }
 }
 
@@ -308,6 +412,11 @@ export async function updateDraftStatus(dbId: string, status: 'pending' | 'appro
     .eq('user_id', user.id)
 
   if (error) return { ok: false as const, reason: 'db_error' as const, message: error.message }
+
+  if (status === 'approved') {
+    await addMemory('draft_approved', `Đã duyệt bài ${dbId}`)
+  }
+
   return { ok: true as const }
 }
 
