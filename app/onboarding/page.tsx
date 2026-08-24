@@ -1,21 +1,40 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Send } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { AppNav } from '@/components/app-nav'
 import { ONBOARDING_QUESTIONS, SAMPLE_BRAND_PROFILE } from '@/lib/mock-data'
-import { saveBrandProfile } from '@/lib/supabase/db'
+import { loadBrandProfile, saveBrandProfile } from '@/lib/supabase/db'
 
 export default function OnboardingPage() {
   const router = useRouter()
+  const [checking, setChecking] = useState(true)
   const [index, setIndex] = useState(0)
   const [answer, setAnswer] = useState('')
   const [answers, setAnswers] = useState<string[]>([])
   const [showFollowUp, setShowFollowUp] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const result = await loadBrandProfile()
+      if (cancelled) return
+      // Đã có hồ sơ → không bắt làm lại 8 câu
+      if (result.ok && !result.empty) {
+        router.replace('/brand-profile')
+        return
+      }
+      setChecking(false)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [router])
 
   const question = ONBOARDING_QUESTIONS[index]
   const progress = useMemo(() => ((index + 1) / ONBOARDING_QUESTIONS.length) * 100, [index])
@@ -31,14 +50,11 @@ export default function OnboardingPage() {
   async function finish(nextAnswers: string[]) {
     setSaving(true)
     setError(null)
-
-    // Fallback local (khi chưa cấu hình Supabase)
     try {
       localStorage.setItem('pba_answers', JSON.stringify(nextAnswers))
       localStorage.setItem('pba_onboarded', '1')
     } catch {}
 
-    // Lưu Supabase: answers + profile mẫu (Claude sẽ thay profile sau)
     const result = await saveBrandProfile({
       answers: nextAnswers,
       profile: SAMPLE_BRAND_PROFILE,
@@ -81,30 +97,50 @@ export default function OnboardingPage() {
     }
   }
 
+  if (checking) {
+    return (
+      <main className="flex min-h-svh items-center justify-center text-sm text-muted-foreground">
+        Đang kiểm tra hồ sơ...
+      </main>
+    )
+  }
+
   return (
     <main className="flex min-h-svh flex-col text-foreground">
       <header className="border-b border-border/60 bg-background/80 backdrop-blur-md">
-        <div className="page-shell flex items-center gap-3 py-4">
-          <button
-            type="button"
-            onClick={() => router.push('/')}
-            className="inline-flex size-9 items-center justify-center rounded-xl border border-border/70 bg-card hover:bg-muted"
-            aria-label="Về trang chủ"
-          >
-            <ArrowLeft className="size-4" />
-          </button>
-          <div className="flex-1">
-            <div className="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
-              <span className="font-medium">
-                Câu {index + 1}/{ONBOARDING_QUESTIONS.length}
-              </span>
-              <span>{Math.round(progress)}%</span>
-            </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full rounded-full bg-primary transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
+        <div className="page-shell space-y-3 py-4">
+          <AppNav />
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                if (index > 0) {
+                  setIndex(index - 1)
+                  setAnswer(answers[index - 1] || '')
+                  setAnswers(answers.slice(0, index - 1))
+                  setShowFollowUp(false)
+                } else {
+                  router.push('/')
+                }
+              }}
+              className="inline-flex size-9 items-center justify-center rounded-xl border border-border/70 bg-card hover:bg-muted"
+              aria-label="Quay lại"
+            >
+              <ArrowLeft className="size-4" />
+            </button>
+            <div className="flex-1">
+              <div className="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
+                <span className="font-medium">
+                  Câu {index + 1}/{ONBOARDING_QUESTIONS.length}
+                </span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
             </div>
           </div>
         </div>
