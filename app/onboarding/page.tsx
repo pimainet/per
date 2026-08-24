@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Send } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { ONBOARDING_QUESTIONS } from '@/lib/mock-data'
+import { ONBOARDING_QUESTIONS, SAMPLE_BRAND_PROFILE } from '@/lib/mock-data'
+import { saveBrandProfile } from '@/lib/supabase/db'
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -13,6 +14,8 @@ export default function OnboardingPage() {
   const [answer, setAnswer] = useState('')
   const [answers, setAnswers] = useState<string[]>([])
   const [showFollowUp, setShowFollowUp] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const question = ONBOARDING_QUESTIONS[index]
   const progress = useMemo(() => ((index + 1) / ONBOARDING_QUESTIONS.length) * 100, [index])
@@ -25,9 +28,41 @@ export default function OnboardingPage() {
     return hits >= 2 && t.length < 120
   }
 
-  function submit() {
+  async function finish(nextAnswers: string[]) {
+    setSaving(true)
+    setError(null)
+
+    // Fallback local (khi chưa cấu hình Supabase)
+    try {
+      localStorage.setItem('pba_answers', JSON.stringify(nextAnswers))
+      localStorage.setItem('pba_onboarded', '1')
+    } catch {}
+
+    // Lưu Supabase: answers + profile mẫu (Claude sẽ thay profile sau)
+    const result = await saveBrandProfile({
+      answers: nextAnswers,
+      profile: SAMPLE_BRAND_PROFILE,
+      locked: false,
+      source: 'mock',
+    })
+
+    setSaving(false)
+
+    if (!result.ok && result.reason === 'not_logged_in') {
+      setError('Bạn chưa đăng nhập. Hãy đăng nhập rồi làm lại onboarding.')
+      return
+    }
+    if (!result.ok && result.reason === 'db_error') {
+      setError(result.message || 'Lưu hồ sơ thất bại. Thử lại.')
+      return
+    }
+
+    router.push('/brand-profile')
+  }
+
+  async function submit() {
     const text = answer.trim()
-    if (!text) return
+    if (!text || saving) return
 
     if (!showFollowUp && isTooGeneric(text) && question.followUp) {
       setShowFollowUp(true)
@@ -42,11 +77,7 @@ export default function OnboardingPage() {
     if (index < ONBOARDING_QUESTIONS.length - 1) {
       setIndex(index + 1)
     } else {
-      try {
-        localStorage.setItem('pba_answers', JSON.stringify(nextAnswers))
-        localStorage.setItem('pba_onboarded', '1')
-      } catch {}
-      router.push('/brand-profile')
+      await finish(nextAnswers)
     }
   }
 
@@ -64,11 +95,16 @@ export default function OnboardingPage() {
           </button>
           <div className="flex-1">
             <div className="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
-              <span className="font-medium">Câu {index + 1}/{ONBOARDING_QUESTIONS.length}</span>
+              <span className="font-medium">
+                Câu {index + 1}/{ONBOARDING_QUESTIONS.length}
+              </span>
               <span>{Math.round(progress)}%</span>
             </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-              <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
         </div>
@@ -77,11 +113,17 @@ export default function OnboardingPage() {
       <div className="page-shell flex flex-1 flex-col gap-5 py-8">
         <div className="card-elevated p-5 sm:p-6">
           <div className="mb-3 flex items-center gap-2">
-            <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-[10px] font-bold text-primary">AI</span>
-            <span className="text-[11px] font-semibold tracking-[0.12em] text-primary uppercase">Nhân viên AI</span>
+            <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-[10px] font-bold text-primary">
+              AI
+            </span>
+            <span className="text-[11px] font-semibold tracking-[0.12em] text-primary uppercase">
+              Nhân viên AI
+            </span>
           </div>
           <p className="text-[15px] leading-7 sm:text-base">{question.text}</p>
-          {question.hint ? <p className="mt-3 text-sm leading-6 text-muted-foreground">{question.hint}</p> : null}
+          {question.hint ? (
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">{question.hint}</p>
+          ) : null}
         </div>
 
         {showFollowUp ? (
@@ -99,9 +141,18 @@ export default function OnboardingPage() {
             rows={4}
             className="w-full resize-none rounded-2xl border border-input bg-card p-4 text-[15px] leading-7 shadow-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
           />
-          <Button className="h-11 w-full rounded-2xl text-[15px]" onClick={submit} disabled={!answer.trim()}>
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          <Button
+            className="h-11 w-full rounded-2xl text-[15px]"
+            onClick={submit}
+            disabled={!answer.trim() || saving}
+          >
             <Send className="size-4" />
-            {index === ONBOARDING_QUESTIONS.length - 1 ? 'Hoàn thành & tạo hồ sơ' : 'Gửi câu trả lời'}
+            {saving
+              ? 'Đang lưu...'
+              : index === ONBOARDING_QUESTIONS.length - 1
+                ? 'Hoàn thành & tạo hồ sơ'
+                : 'Gửi câu trả lời'}
           </Button>
         </div>
       </div>
