@@ -183,7 +183,8 @@ export async function saveBrandProfile(input: {
   const prev = (existing?.data || {}) as BrandProfileData
   const nextData: BrandProfileData = {
     answers: input.answers ?? prev.answers,
-    profile: input.profile ?? prev.profile ?? SAMPLE_BRAND_PROFILE,
+    // Chỉ ghi profile khi có input mới; không ép SAMPLE đè lên dữ liệu user
+    profile: input.profile ?? prev.profile,
     source: input.source ?? prev.source ?? 'mock',
   }
 

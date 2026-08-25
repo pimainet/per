@@ -59,35 +59,27 @@ export const ONBOARDING_QUESTIONS = [
 
 export const SAMPLE_BRAND_PROFILE = {
   dinhVi: {
-    doiTuong: 'Founder / chủ doanh nghiệp nhỏ đang muốn dùng AI nhưng bị quá tải và thiếu hệ thống',
-    tinhHuong: 'Biết AI quan trọng nhưng không biết bắt đầu từ đâu, sợ làm sai hoặc tốn thời gian',
-    ketQua: 'Có cách tiếp cận AI thực tế, tiết kiệm thời gian và tăng năng lực vận hành',
-    cauDinhVi:
-      'Tôi giúp founder và chủ doanh nghiệp nhỏ thoát khỏi sự lúng túng khi ứng dụng AI, để họ vận hành gọn hơn và tập trung vào việc quan trọng.',
+    doiTuong: 'Chưa xác định — cần hoàn thành onboarding và tạo hồ sơ bằng AI',
+    tinhHuong: 'Chưa có dữ liệu',
+    ketQua: 'Chưa có dữ liệu',
+    cauDinhVi: 'Hồ sơ chưa được tạo. Hãy bấm “Tạo lại bằng AI” hoặc làm lại onboarding.',
   },
   khacBiet: {
-    phoBien: 'Nói về AI theo hướng công cụ, tính năng, hoặc hứa hẹn chung chung',
-    diemKhac: 'Đi từ bài toán thật của doanh nghiệp → chọn đúng chỗ dùng AI → duy trì được',
-    lyDo: 'AI chỉ có giá trị khi gắn vào việc đang bị tắc, không phải khi chỉ “biết dùng tool”',
+    phoBien: 'Chưa có dữ liệu',
+    diemKhac: 'Chưa có dữ liệu',
+    lyDo: 'Chưa có dữ liệu',
   },
-  cauChuyen:
-    'Từng tự làm nhiều việc bằng AI cho doanh nghiệp mình, nhận ra vấn đề không phải thiếu tool mà thiếu cách chọn việc và duy trì.',
-  niemTin:
-    'AI không thay người — AI thay phần việc lặp lại để người làm việc có chiều sâu hơn. Sẵn sàng nói công khai.',
+  cauChuyen: 'Chưa có dữ liệu từ câu trả lời của bạn.',
+  niemTin: 'Chưa có dữ liệu',
   giongDieu: {
-    phongCach: 'Thẳng + có chiều sâu, gần gũi nhưng không sến',
-    uuTien: 'Rõ ràng → Thẳng thắn → Chiều sâu → Gần gũi',
-    xungHo: 'Tôi / bạn, khoảng cách vừa phải',
-    tranh: 'Sáo rỗng, hứa suông, giọng “guru”',
+    phongCach: 'Chưa xác định',
+    uuTien: 'Chưa xác định',
+    xungHo: 'Tôi / bạn',
+    tranh: 'Nội dung generic',
   },
-  diemNghen: 'Biết cần đăng đều nhưng hay trì hoãn vì chưa rõ hôm nay viết gì và sợ sai giọng',
-  mucTieu12Thang:
-    'Có người chủ động tìm đến vì nội dung; được nhận diện là người thực chiến về AI cho doanh nghiệp',
-  dinhHuong: [
-    'Chia sẻ góc nhìn thực tế khi ứng dụng AI vào vận hành',
-    'Kể câu chuyện / bài học từ việc tự làm',
-    'Phản biện các cách dùng AI chung chung, thiếu hệ thống',
-  ],
+  diemNghen: 'Chưa có dữ liệu',
+  mucTieu12Thang: 'Chưa có dữ liệu',
+  dinhHuong: ['Chưa có định hướng — cần tạo hồ sơ bằng AI'],
 }
 
 export const SAMPLE_ROADMAP = {

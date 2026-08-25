@@ -55,8 +55,8 @@ export default function OnboardingPage() {
       localStorage.setItem('pba_onboarded', '1')
     } catch {}
 
-    let profile = SAMPLE_BRAND_PROFILE
-    let source: 'mock' | 'claude' = 'mock'
+    let profile = null as typeof SAMPLE_BRAND_PROFILE | null
+    let claudeError: string | null = null
 
     try {
       const res = await fetch('/api/brand-profile', {
@@ -67,19 +67,21 @@ export default function OnboardingPage() {
       const data = await res.json()
       if (res.ok && data.profile) {
         profile = data.profile
-        source = 'claude'
       } else {
+        claudeError = data.error || data.detail || 'Claude không tạo được hồ sơ'
         console.error('Claude profile failed', data)
       }
     } catch (e) {
+      claudeError = 'Không kết nối được máy chủ AI'
       console.error(e)
     }
 
+    // Chỉ lưu answers trước; profile chỉ lưu khi Claude thành công
     const result = await saveBrandProfile({
       answers: nextAnswers,
-      profile,
+      profile: profile || undefined,
       locked: false,
-      source,
+      source: profile ? 'claude' : 'mock',
     })
 
     setSaving(false)
@@ -90,6 +92,16 @@ export default function OnboardingPage() {
     }
     if (!result.ok && result.reason === 'db_error') {
       setError(result.message || 'Lưu hồ sơ thất bại. Thử lại.')
+      return
+    }
+
+    if (!profile) {
+      setError(
+        (claudeError || 'AI chưa tạo được hồ sơ') +
+          '. Câu trả lời đã được lưu. Vào Hồ sơ bấm “Tạo lại bằng AI” sau khi kiểm tra API key.',
+      )
+      // Vẫn cho vào hồ sơ để thấy answers đã lưu + nút tạo lại
+      router.push('/brand-profile')
       return
     }
 

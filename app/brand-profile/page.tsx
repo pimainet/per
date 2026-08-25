@@ -34,8 +34,12 @@ export default function BrandProfilePage() {
         setLocked(Boolean(result.locked))
         setHasRecord(true)
         if (result.data.answers) setAnswers(result.data.answers)
-        const src = result.data.source === 'claude' ? ' (Claude)' : ' (mẫu)'
-        setStatus('Đã tải hồ sơ từ tài khoản của bạn' + src)
+        const src = result.data.source === 'claude' ? 'claude' : 'mock'
+        setStatus(
+          src === 'claude'
+            ? 'Hồ sơ tạo bởi AI từ câu trả lời của bạn'
+            : 'CẢNH BÁO: Hồ sơ chưa phải do AI tạo từ câu trả lời của bạn — bấm Tạo lại bằng AI',
+        )
       } else if (result.ok && result.empty) {
         setStatus('Chưa có hồ sơ — hãy hoàn thành onboarding')
       } else if (!result.ok && result.reason === 'not_logged_in') {
