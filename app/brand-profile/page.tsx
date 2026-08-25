@@ -22,6 +22,8 @@ export default function BrandProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [answers, setAnswers] = useState<string[]>([])
   const [regenerating, setRegenerating] = useState(false)
+  const [regenUsed, setRegenUsed] = useState(0)
+  const REGEN_LIMIT = 2 // mỗi tháng
 
   useEffect(() => {
     let cancelled = false
@@ -45,6 +47,13 @@ export default function BrandProfilePage() {
       } else if (!result.ok && result.reason === 'not_logged_in') {
         setStatus('Chưa đăng nhập — hồ sơ chỉ lưu tạm trên máy')
       }
+
+        // Giới hạn tạo lại AI: 2 lần/tháng (theo máy + user)
+        try {
+          const key = 'pba_regen_' + new Date().toISOString().slice(0, 7)
+          const n = Number(localStorage.getItem(key) || '0')
+          setRegenUsed(Number.isFinite(n) ? n : 0)
+        } catch {}
       setLoading(false)
     })()
     return () => {
@@ -56,6 +65,10 @@ export default function BrandProfilePage() {
   async function regenerateWithClaude() {
     if (!answers.length) {
       setError('Chưa có câu trả lời onboarding để tạo lại. Hãy làm lại onboarding.')
+      return
+    }
+    if (regenUsed >= REGEN_LIMIT) {
+      setError(`Bạn đã dùng hết ${REGEN_LIMIT} lần tạo lại bằng AI trong tháng này. Tháng sau sẽ được reset.`)
       return
     }
     setRegenerating(true)
@@ -84,6 +97,12 @@ export default function BrandProfilePage() {
       } else {
         setStatus('Đã tạo lại hồ sơ bằng Claude')
         setLocked(false)
+        try {
+          const key = 'pba_regen_' + new Date().toISOString().slice(0, 7)
+          const next = regenUsed + 1
+          localStorage.setItem(key, String(next))
+          setRegenUsed(next)
+        } catch {}
       }
     } catch {
       setError('Lỗi kết nối API Claude')
@@ -263,10 +282,10 @@ export default function BrandProfilePage() {
             variant="outline"
             className="h-11 flex-1 rounded-2xl"
             onClick={regenerateWithClaude}
-            disabled={regenerating || !answers.length}
+            disabled={regenerating || !answers.length || regenUsed >= REGEN_LIMIT}
           >
             <Pencil className="size-4" />
-            {regenerating ? 'Claude đang viết...' : 'Tạo lại bằng AI'}
+            {regenerating ? 'Claude đang viết...' : `Tạo lại bằng AI (${Math.max(0, REGEN_LIMIT - regenUsed)}/${REGEN_LIMIT})`}
           </Button>
           <Button className="h-11 flex-1 rounded-2xl" onClick={lockProfile} disabled={saving || locked}>
             <Lock className="size-4" />

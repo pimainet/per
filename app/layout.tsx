@@ -16,20 +16,24 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Nhân viên AI | Thương hiệu cá nhân',
   description: 'Xây dựng và vận hành thương hiệu cá nhân cùng một nhân viên AI điềm tĩnh, nhất quán.',
-  generator: 'v0.app',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: 'Nhân viên AI',
+    statusBarStyle: 'default',
+  },
   icons: {
     icon: [
-      { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
-      { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
     ],
-    apple: '/apple-icon.png',
+    apple: '/icon-192.png',
   },
 }
 
 export const viewport: Viewport = {
   colorScheme: 'light',
-  themeColor: '#f8fafc',
+  themeColor: '#1e3a8a',
   userScalable: false,
 }
 

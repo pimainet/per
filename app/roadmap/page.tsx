@@ -25,6 +25,8 @@ export default function RoadmapPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [source, setSource] = useState<'claude' | 'db' | 'empty'>('empty')
+  const [regenUsed, setRegenUsed] = useState(0)
+  const REGEN_LIMIT = 2
 
   async function generateFromProfile(prof: unknown) {
     setGenerating(true)
@@ -44,6 +46,7 @@ export default function RoadmapPage() {
       setR(data.roadmap)
       setSource('claude')
       await saveRoadmap(data.roadmap)
+      // Chỉ tính quota khi user chủ động tạo lại (không tính lần đầu auto)
       setGenerating(false)
       return true
     } catch {
@@ -54,6 +57,10 @@ export default function RoadmapPage() {
   }
 
   useEffect(() => {
+    try {
+      const key = 'pba_roadmap_regen_' + new Date().toISOString().slice(0, 7)
+      setRegenUsed(Number(localStorage.getItem(key) || '0') || 0)
+    } catch {}
     let cancelled = false
     ;(async () => {
       const [rm, bp] = await Promise.all([loadRoadmap(), loadBrandProfile()])
@@ -155,8 +162,23 @@ export default function RoadmapPage() {
               variant="outline"
               size="sm"
               className="rounded-xl"
-              disabled={!profile || generating}
-              onClick={() => profile && generateFromProfile(profile)}
+              disabled={!profile || generating || regenUsed >= REGEN_LIMIT}
+              onClick={async () => {
+                if (!profile) return
+                if (regenUsed >= REGEN_LIMIT) {
+                  setError(`Đã hết ${REGEN_LIMIT} lần tạo lại lộ trình trong tháng này.`)
+                  return
+                }
+                const ok = await generateFromProfile(profile)
+                if (ok) {
+                  const next = regenUsed + 1
+                  setRegenUsed(next)
+                  try {
+                    const key = 'pba_roadmap_regen_' + new Date().toISOString().slice(0, 7)
+                    localStorage.setItem(key, String(next))
+                  } catch {}
+                }
+              }}
             >
               <RefreshCw className="size-3.5" />
               Tạo lại
