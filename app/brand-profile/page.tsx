@@ -20,6 +20,8 @@ export default function BrandProfilePage() {
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [answers, setAnswers] = useState<string[]>([])
+  const [regenerating, setRegenerating] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -31,7 +33,9 @@ export default function BrandProfilePage() {
         setProfile(result.data.profile)
         setLocked(Boolean(result.locked))
         setHasRecord(true)
-        setStatus('Đã tải hồ sơ từ tài khoản của bạn')
+        if (result.data.answers) setAnswers(result.data.answers)
+        const src = result.data.source === 'claude' ? ' (Claude)' : ' (mẫu)'
+        setStatus('Đã tải hồ sơ từ tài khoản của bạn' + src)
       } else if (result.ok && result.empty) {
         setStatus('Chưa có hồ sơ — hãy hoàn thành onboarding')
       } else if (!result.ok && result.reason === 'not_logged_in') {
@@ -43,6 +47,45 @@ export default function BrandProfilePage() {
       cancelled = true
     }
   }, [])
+
+
+  async function regenerateWithClaude() {
+    if (!answers.length) {
+      setError('Chưa có câu trả lời onboarding để tạo lại. Hãy làm lại onboarding.')
+      return
+    }
+    setRegenerating(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/brand-profile', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ answers }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.profile) {
+        setError(data.error || 'Không tạo được profile bằng Claude')
+        setRegenerating(false)
+        return
+      }
+      setProfile(data.profile)
+      const result = await saveBrandProfile({
+        answers,
+        profile: data.profile,
+        locked: false,
+        source: 'claude',
+      })
+      if (!result.ok) {
+        setError('Tạo được profile nhưng lưu DB thất bại')
+      } else {
+        setStatus('Đã tạo lại hồ sơ bằng Claude')
+        setLocked(false)
+      }
+    } catch {
+      setError('Lỗi kết nối API Claude')
+    }
+    setRegenerating(false)
+  }
 
   async function lockProfile() {
     setSaving(true)
@@ -210,9 +253,14 @@ export default function BrandProfilePage() {
 
       <div className="sticky-action">
         <div className="page-shell flex gap-2 !px-0">
-          <Button variant="outline" className="h-11 flex-1 rounded-2xl" disabled>
+          <Button
+            variant="outline"
+            className="h-11 flex-1 rounded-2xl"
+            onClick={regenerateWithClaude}
+            disabled={regenerating || !answers.length}
+          >
             <Pencil className="size-4" />
-            Chỉnh sửa
+            {regenerating ? 'Claude đang viết...' : 'Tạo lại bằng AI'}
           </Button>
           <Button className="h-11 flex-1 rounded-2xl" onClick={lockProfile} disabled={saving || locked}>
             <Lock className="size-4" />

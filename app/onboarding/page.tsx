@@ -55,11 +55,31 @@ export default function OnboardingPage() {
       localStorage.setItem('pba_onboarded', '1')
     } catch {}
 
+    let profile = SAMPLE_BRAND_PROFILE
+    let source: 'mock' | 'claude' = 'mock'
+
+    try {
+      const res = await fetch('/api/brand-profile', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ answers: nextAnswers }),
+      })
+      const data = await res.json()
+      if (res.ok && data.profile) {
+        profile = data.profile
+        source = 'claude'
+      } else {
+        console.error('Claude profile failed', data)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+
     const result = await saveBrandProfile({
       answers: nextAnswers,
-      profile: SAMPLE_BRAND_PROFILE,
+      profile,
       locked: false,
-      source: 'mock',
+      source,
     })
 
     setSaving(false)
