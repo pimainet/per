@@ -8,6 +8,9 @@ import { ONBOARDING_QUESTIONS } from '@/lib/mock-data'
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
+// Model còn active (Sonnet 4 cũ 20250514 đã retired 15/06/2026)
+const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6'
+
 export async function POST(request: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
@@ -43,7 +46,7 @@ export async function POST(request: Request) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: MODEL,
         max_tokens: 2500,
         temperature: 0.3,
         system: BRAND_PROFILE_SYSTEM,
@@ -54,8 +57,15 @@ export async function POST(request: Request) {
     if (!res.ok) {
       const errText = await res.text()
       console.error('Anthropic error', res.status, errText)
+      let message = `Claude API lỗi (${res.status})`
+      try {
+        const j = JSON.parse(errText)
+        message = j?.error?.message || j?.message || message
+      } catch {
+        if (errText) message = errText.slice(0, 300)
+      }
       return NextResponse.json(
-        { error: 'Claude API lỗi', detail: errText.slice(0, 500) },
+        { error: message, detail: errText.slice(0, 500), model: MODEL },
         { status: 502 },
       )
     }
@@ -74,10 +84,13 @@ export async function POST(request: Request) {
       )
     }
 
-    return NextResponse.json({ profile, source: 'claude' })
+    return NextResponse.json({ profile, source: 'claude', model: MODEL })
   } catch (e) {
     console.error(e)
-    return NextResponse.json({ error: 'Lỗi gọi Claude' }, { status: 500 })
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : 'Lỗi gọi Claude' },
+      { status: 500 },
+    )
   }
 }
 

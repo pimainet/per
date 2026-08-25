@@ -68,7 +68,7 @@ export default function BrandProfilePage() {
       })
       const data = await res.json()
       if (!res.ok || !data.profile) {
-        setError(data.error || 'Không tạo được profile bằng Claude')
+        setError((data.error || 'Không tạo được profile bằng Claude') + (data.detail ? ': ' + String(data.detail).slice(0, 180) : ''))
         setRegenerating(false)
         return
       }
