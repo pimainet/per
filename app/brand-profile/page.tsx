@@ -7,7 +7,7 @@ import { ArrowLeft, Lock, Pencil, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AppNav } from '@/components/app-nav'
 import { SAMPLE_BRAND_PROFILE } from '@/lib/mock-data'
-import { loadBrandProfile, saveBrandProfile } from '@/lib/supabase/db'
+import { clearDownstreamData, loadBrandProfile, saveBrandProfile } from '@/lib/supabase/db'
 
 type Profile = typeof SAMPLE_BRAND_PROFILE
 
@@ -101,8 +101,10 @@ export default function BrandProfilePage() {
     const result = await saveBrandProfile({
       profile,
       locked: true,
-      source: 'mock',
+      source: 'claude',
     })
+    // Xóa lộ trình + bài cũ để không hiện content của lần trước / user khác
+    await clearDownstreamData()
 
     setSaving(false)
 

@@ -83,21 +83,21 @@ export const SAMPLE_BRAND_PROFILE = {
 }
 
 export const SAMPLE_ROADMAP = {
-  tenGiaiDoan: 'Gieo nhận diện chuyên gia thực chiến',
-  mucTieu: 'Người đọc nhớ bạn là người nói về AI từ việc thật, không phải từ lý thuyết',
-  thoiGian: '45 ngày',
+  tenGiaiDoan: 'Giai đoạn khởi động nhận diện',
+  mucTieu: 'Người đọc bắt đầu nhớ bạn vì một góc nhìn rõ ràng, nhất quán',
+  thoiGian: '30–45 ngày',
   truCot: [
-    { ten: 'Góc nhìn thực chiến về AI cho doanh nghiệp', lyDo: 'Bám định vị và điểm khác biệt' },
-    { ten: 'Câu chuyện / bài học cá nhân', lyDo: 'Tăng độ tin và gần gũi, giảm khô' },
+    { ten: 'Góc nhìn chuyên môn riêng', lyDo: 'Bám định vị trong Brand Profile' },
+    { ten: 'Câu chuyện / bài học cá nhân', lyDo: 'Tăng độ tin, giảm generic' },
   ],
   nhip: '3 bài/tuần',
   tyLe: '2 quan điểm – 1 câu chuyện',
   tuanMau: [
-    { ngay: 'Thứ 2', loai: 'Quan điểm', truCot: 'Góc nhìn thực chiến', goiY: 'Một sai lầm phổ biến khi đưa AI vào doanh nghiệp' },
-    { ngay: 'Thứ 4', loai: 'Câu chuyện', truCot: 'Bài học cá nhân', goiY: 'Khoảnh khắc khiến bạn đổi cách nhìn về AI' },
-    { ngay: 'Thứ 6', loai: 'Quan điểm', truCot: 'Góc nhìn thực chiến', goiY: 'Việc gì nên để AI làm, việc gì không' },
+    { ngay: 'Thứ 2', loai: 'Quan điểm', truCot: 'Góc nhìn chuyên môn', goiY: 'Một quan điểm bạn sẵn sàng bảo vệ công khai' },
+    { ngay: 'Thứ 4', loai: 'Câu chuyện', truCot: 'Bài học cá nhân', goiY: 'Một khoảnh khắc đổi cách bạn làm việc' },
+    { ngay: 'Thứ 6', loai: 'Quan điểm', truCot: 'Góc nhìn chuyên môn', goiY: 'Phản biện một cách làm phổ biến trong ngành' },
   ],
-  ruiRo: 'Quá nghiêng về kiến thức → thiếu cảm xúc. Giảm bằng cách giữ đúng 1 bài chuyện/tuần.',
+  ruiRo: 'Viết generic hoặc lệch giọng. Giữ bám Brand Profile mỗi bài.',
 }
 
 export type Draft = {
@@ -114,44 +114,12 @@ export const SAMPLE_DRAFTS: Draft[] = [
   {
     id: '1',
     platform: 'LinkedIn',
-    pillar: 'Góc nhìn thực chiến',
-    time: 'Hôm nay, 08:30',
-    content: `Một điều tôi nhận ra sau nhiều năm làm việc với các founder: vấn đề hiếm khi nằm ở việc họ thiếu ý tưởng.
+    pillar: 'Góc nhìn chuyên môn',
+    time: 'Mới tạo',
+    content: `Đây là bài nháp mẫu — sẽ được thay bằng bài viết theo Brand Profile của bạn khi AI soạn xong.
 
-Vấn đề thường là họ chưa có một cách rõ ràng để biến trải nghiệm thành câu chuyện mà người khác có thể nhớ và tin cậy.
-
-Thương hiệu cá nhân không được xây bằng vài bài viết hay. Nó được xây bằng sự nhất quán — trong cách bạn nhìn vấn đề, kể lại điều mình đã học, và giúp người khác tiến lên một bước nhỏ.
-
-Đó cũng là lý do tôi luôn bắt đầu từ câu hỏi: “Bạn muốn được nhớ đến vì điều gì?”`,
-    note: 'Bài mở đầu chuỗi về xây dựng thương hiệu từ trải nghiệm thật. Góc gần gũi, có chiều sâu.',
-    status: 'pending',
-  },
-  {
-    id: '2',
-    platform: 'LinkedIn',
-    pillar: 'Bài học cá nhân',
-    time: 'Hôm qua, 09:15',
-    content: `Có một giai đoạn tôi nghĩ cứ có thêm tool AI là việc sẽ nhẹ hơn.
-
-Thực tế ngược lại: càng nhiều tool, càng dễ loạn nếu chưa biết việc nào đáng giao cho AI.
-
-Từ đó tôi đổi cách làm. Không hỏi “AI làm được gì?”, mà hỏi “Việc nào đang ăn thời gian và lặp lại nhiều nhất?”.
-
-Chỉ một câu hỏi đó đã giúp tôi cắt được khá nhiều việc không cần ôm.`,
-    note: 'Bài kể chuyện, củng cố trụ cột bài học cá nhân trong tuần mẫu.',
-    status: 'pending',
-  },
-  {
-    id: '3',
-    platform: 'Facebook',
-    pillar: 'Góc nhìn thực chiến',
-    time: '2 ngày trước',
-    content: `AI không phải chỗ để “thử cho vui” rồi bỏ.
-
-Nếu bạn đưa AI vào một việc đang tắc thật — báo cáo tuần, trả lời khách, soạn nội dung đều — bạn sẽ thấy giá trị rất nhanh.
-
-Còn nếu chỉ chơi với prompt cho vui, sau 2 tuần mọi thứ quay về như cũ.`,
-    note: 'Bài quan điểm ngắn, phù hợp Facebook, nhấn mạnh tính thực dụng.',
+Hãy xác nhận lộ trình, rồi dùng “Tạo bài bằng AI” (sắp có) hoặc đợi hệ thống soạn theo đúng định vị của bạn.`,
+    note: 'Placeholder trung tính — không phải nội dung của user khác.',
     status: 'pending',
   },
 ]

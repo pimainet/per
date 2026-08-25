@@ -254,6 +254,24 @@ export async function loadBrandProfile() {
   }
 }
 
+
+/** Xóa lộ trình + bài cũ khi user khóa profile mới — tránh dính content cũ */
+export async function clearDownstreamData() {
+  if (!isSupabaseConfigured()) {
+    return { ok: false as const, reason: 'not_configured' as const }
+  }
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false as const, reason: 'not_logged_in' as const }
+
+  await supabase.from('drafts').delete().eq('user_id', user.id)
+  await supabase.from('roadmaps').delete().eq('user_id', user.id)
+  await addMemory('downstream_cleared', 'Đã xóa lộ trình và bài cũ sau khi khóa hồ sơ mới')
+  return { ok: true as const }
+}
+
 export async function saveRoadmap(roadmap = SAMPLE_ROADMAP) {
   if (!isSupabaseConfigured()) {
     return { ok: false as const, reason: 'not_configured' as const }
@@ -343,6 +361,39 @@ export async function ensureSampleDrafts() {
     return { ok: false as const, reason: 'db_error' as const, message: error.message }
   }
   return { ok: true as const, seeded: true as const }
+}
+
+
+export async function replaceDraftsWith(
+  drafts: { platform: string; pillar?: string; content: string; note?: string }[],
+) {
+  if (!isSupabaseConfigured()) {
+    return { ok: false as const, reason: 'not_configured' as const }
+  }
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false as const, reason: 'not_logged_in' as const }
+
+  await supabase.from('drafts').delete().eq('user_id', user.id)
+
+  const rows = drafts.map((d) => ({
+    user_id: user.id,
+    platform: d.platform,
+    pillar: d.pillar || '',
+    content: d.content,
+    note: d.note || '',
+    status: 'pending',
+  }))
+
+  const { error } = await supabase.from('drafts').insert(rows)
+  if (error) {
+    console.error('replaceDraftsWith', error)
+    return { ok: false as const, reason: 'db_error' as const, message: error.message }
+  }
+  await addMemory('drafts_generated', `Đã tạo ${rows.length} bài nháp bằng AI`)
+  return { ok: true as const }
 }
 
 export async function loadDrafts(): Promise<
