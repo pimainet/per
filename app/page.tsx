@@ -11,6 +11,7 @@ import {
 } from '@/lib/companion'
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
 import { ensureUserProfile, getUserProgress, type UserProgress } from '@/lib/supabase/db'
+import { BottomNav } from '@/components/bottom-nav'
 
 export default function WelcomePage() {
   const [progress, setProgress] = useState<UserProgress | null>(null)
@@ -143,7 +144,7 @@ export default function WelcomePage() {
 
   // Logged-in companion home
   return (
-    <main className="min-h-svh px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] text-foreground">
+    <main className="pb-bottom-nav min-h-svh px-4 pt-[max(1rem,env(safe-area-inset-top))] text-foreground">
       <div className="mx-auto flex w-full max-w-lg flex-col gap-5 py-4">
         {/* Greeting card */}
         <section className="card-elevated overflow-hidden">
@@ -202,6 +203,7 @@ export default function WelcomePage() {
           Mình không thay bạn xuất hiện. Mình giúp bạn xuất hiện đúng và đều.
         </p>
       </div>
+          <BottomNav />
     </main>
   )
 }

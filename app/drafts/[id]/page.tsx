@@ -17,6 +17,7 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { AppNav } from '@/components/app-nav'
+import { BottomNav } from '@/components/bottom-nav'
 import type { Draft } from '@/lib/mock-data'
 import { loadDrafts, updateDraftStatus } from '@/lib/supabase/db'
 
@@ -108,7 +109,8 @@ export default function DraftDetailPage() {
     return (
       <main className="flex min-h-svh items-center justify-center text-muted-foreground">
         <Loader2 className="size-5 animate-spin" />
-      </main>
+            <BottomNav />
+    </main>
     )
   }
 
@@ -143,7 +145,7 @@ export default function DraftDetailPage() {
   }
 
   return (
-    <main className="min-h-svh pb-32 text-foreground">
+    <main className="min-h-svh pb-bottom-nav pb-32 text-foreground">
       <div className="page-shell">
         <header className="space-y-3 border-b border-border/60 py-4">
           <AppNav />

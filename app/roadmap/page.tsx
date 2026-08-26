@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Loader2, RefreshCw } from 'lucide-react'
 
 import { AppNav } from '@/components/app-nav'
+import { BottomNav } from '@/components/bottom-nav'
 import { Button } from '@/components/ui/button'
 import { AiWaiting } from '@/components/ai-waiting'
 import { SAMPLE_ROADMAP } from '@/lib/mock-data'
@@ -168,7 +169,8 @@ export default function RoadmapPage() {
       <main className="flex min-h-svh flex-col items-center justify-center gap-3 text-muted-foreground">
         <Loader2 className="size-5 animate-spin" />
         <span className="text-sm">Đang mở lộ trình...</span>
-      </main>
+            <BottomNav />
+    </main>
     )
   }
 
@@ -181,7 +183,7 @@ export default function RoadmapPage() {
   }
 
   return (
-    <main className="min-h-svh pb-28 text-foreground">
+    <main className="min-h-svh pb-bottom-nav pb-28 text-foreground">
       <div className="page-shell">
         <header className="space-y-3 border-b border-border/60 py-4">
           <AppNav />

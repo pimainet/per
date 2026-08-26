@@ -10,11 +10,12 @@ const LINKS = [
   { href: '/drafts', label: 'Chờ duyệt' },
 ]
 
+/** Top pills — desktop only. Mobile dùng BottomNav */
 export function AppNav({ showHome = true }: { showHome?: boolean }) {
   const pathname = usePathname()
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="hidden items-center gap-1.5 md:flex">
       {showHome ? (
         <Link
           href="/"

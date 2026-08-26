@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, FileText, Loader2 } from 'lucide-react'
 
 import { AppNav } from '@/components/app-nav'
+import { BottomNav } from '@/components/bottom-nav'
 import type { Draft } from '@/lib/mock-data'
 import { loadDrafts, loadRoadmap } from '@/lib/supabase/db'
 import { parsePostsPerWeek, scheduleDays } from '@/lib/schedule'
@@ -51,7 +52,7 @@ export default function DraftsPage() {
   })
 
   return (
-    <main className="min-h-svh text-foreground">
+    <main className="min-h-svh pb-bottom-nav text-foreground">
       <div className="page-shell">
         <header className="space-y-3 border-b border-border/60 py-4">
           <AppNav />
@@ -175,6 +176,7 @@ export default function DraftsPage() {
           </div>
         )}
       </div>
+          <BottomNav />
     </main>
   )
 }

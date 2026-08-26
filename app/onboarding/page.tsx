@@ -7,6 +7,7 @@ import { ArrowLeft, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AiWaiting } from '@/components/ai-waiting'
 import { AppNav } from '@/components/app-nav'
+import { BottomNav } from '@/components/bottom-nav'
 import { ONBOARDING_QUESTIONS, SAMPLE_BRAND_PROFILE } from '@/lib/mock-data'
 import { loadBrandProfile, saveBrandProfile } from '@/lib/supabase/db'
 
@@ -69,15 +70,15 @@ export default function OnboardingPage() {
       if (res.ok && data.profile) {
         profile = data.profile
       } else {
-        claudeError = data.error || data.detail || 'Claude không tạo được hồ sơ'
-        console.error('Claude profile failed', data)
+        claudeError = data.error || data.detail || 'mình không tạo được hồ sơ'
+        console.error('mình profile failed', data)
       }
     } catch (e) {
       claudeError = 'Không kết nối được máy chủ AI'
       console.error(e)
     }
 
-    // Chỉ lưu answers trước; profile chỉ lưu khi Claude thành công
+    // Chỉ lưu answers trước; profile chỉ lưu khi mình thành công
     const result = await saveBrandProfile({
       answers: nextAnswers,
       profile: profile || undefined,
@@ -132,9 +133,10 @@ export default function OnboardingPage() {
 
   if (checking) {
     return (
-      <main className="flex min-h-svh items-center justify-center text-sm text-muted-foreground">
+      <main className="pb-bottom-nav flex min-h-svh items-center justify-center text-sm text-muted-foreground">
         Đang kiểm tra hồ sơ...
-      </main>
+            <BottomNav />
+    </main>
     )
   }
 

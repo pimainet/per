@@ -99,3 +99,21 @@
   min-height: 44px;
   min-width: 44px;
 }
+
+
+/* Space for mobile bottom nav */
+.pb-bottom-nav {
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 768px) {
+  .pb-bottom-nav {
+    padding-bottom: 1.5rem;
+  }
+}
+
+/* Sticky actions sit above bottom nav on mobile */
+@media (max-width: 767px) {
+  .sticky-action {
+    bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}

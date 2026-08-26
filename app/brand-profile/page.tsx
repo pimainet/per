@@ -7,6 +7,7 @@ import { ArrowLeft, Lock, Pencil, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AiWaiting } from '@/components/ai-waiting'
 import { AppNav } from '@/components/app-nav'
+import { BottomNav } from '@/components/bottom-nav'
 import { SAMPLE_BRAND_PROFILE } from '@/lib/mock-data'
 import { clearDownstreamData, loadBrandProfile, saveBrandProfile } from '@/lib/supabase/db'
 
@@ -149,7 +150,8 @@ export default function BrandProfilePage() {
       <main className="flex min-h-svh items-center justify-center text-muted-foreground">
         <Loader2 className="size-5 animate-spin" />
         <span className="ml-2 text-sm">Đang tải hồ sơ...</span>
-      </main>
+            <BottomNav />
+    </main>
     )
   }
 
@@ -158,7 +160,7 @@ export default function BrandProfilePage() {
   }
 
   return (
-    <main className="min-h-svh pb-28 text-foreground">
+    <main className="min-h-svh pb-bottom-nav pb-28 text-foreground">
       <div className="page-shell">
         <header className="space-y-3 border-b border-border/60 py-4">
           <AppNav />
