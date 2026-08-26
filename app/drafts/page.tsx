@@ -14,7 +14,7 @@ type DraftRow = Draft & { dbId?: string }
 
 export default function DraftsPage() {
   const router = useRouter()
-  const [filter, setFilter] = useState<'all' | 'LinkedIn' | 'Facebook'>('all')
+  const [filter, setFilter] = useState<'pending' | 'all' | 'LinkedIn' | 'Facebook'>('pending')
   const [drafts, setDrafts] = useState<DraftRow[]>([])
   const [loading, setLoading] = useState(true)
   const [scheduleHint, setScheduleHint] = useState('T2 · T4 · T6')
@@ -44,7 +44,11 @@ export default function DraftsPage() {
     }
   }, [])
 
-  const visible = drafts.filter((d) => filter === 'all' || d.platform === filter)
+  const visible = drafts.filter((d) => {
+    if (filter === 'pending') return d.status !== 'approved'
+    if (filter === 'all') return true
+    return d.platform === filter
+  })
 
   return (
     <main className="min-h-svh text-foreground">
@@ -71,7 +75,7 @@ export default function DraftsPage() {
         </header>
 
         <div className="flex gap-2 py-4">
-          {(['all', 'LinkedIn', 'Facebook'] as const).map((key) => (
+          {(['pending', 'all', 'LinkedIn', 'Facebook'] as const).map((key) => (
             <button
               key={key}
               type="button"
@@ -82,7 +86,7 @@ export default function DraftsPage() {
                   : 'bg-muted text-muted-foreground hover:text-foreground'
               }`}
             >
-              {key === 'all' ? 'Tất cả' : key}
+              {key === 'pending' ? 'Chờ duyệt' : key === 'all' ? 'Tất cả' : key}
             </button>
           ))}
         </div>

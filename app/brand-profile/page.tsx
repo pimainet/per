@@ -23,6 +23,7 @@ export default function BrandProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [answers, setAnswers] = useState<string[]>([])
   const [regenerating, setRegenerating] = useState(false)
+  const [profileSource, setProfileSource] = useState<'mock' | 'claude' | null>(null)
   const [regenUsed, setRegenUsed] = useState(0)
   const REGEN_LIMIT = 2 // mỗi tháng
 
@@ -38,10 +39,11 @@ export default function BrandProfilePage() {
         setHasRecord(true)
         if (result.data.answers) setAnswers(result.data.answers)
         const src = result.data.source === 'claude' ? 'claude' : 'mock'
+        setProfileSource(src)
         setStatus(
           src === 'claude'
             ? 'Hồ sơ tạo bởi AI từ câu trả lời của bạn'
-            : 'CẢNH BÁO: Hồ sơ chưa phải do AI tạo từ câu trả lời của bạn — bấm Tạo lại bằng AI',
+            : 'Hồ sơ chưa phải bản AI đầy đủ — nên tạo lại trước khi khóa',
         )
       } else if (result.ok && result.empty) {
         setStatus('Chưa có hồ sơ — hãy hoàn thành onboarding')
@@ -184,6 +186,16 @@ export default function BrandProfilePage() {
 
         <div className="flex flex-col gap-4 py-6">
           {status ? <p className="text-xs text-muted-foreground">{status}</p> : null}
+          {profileSource === 'mock' ? (
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm leading-6 text-amber-950">
+              <p className="font-semibold">Chưa nên khóa vội</p>
+              <p className="mt-1 text-amber-900/90">
+                Bản này chưa được dựng từ câu trả lời của bạn bằng AI. Bấm{' '}
+                <span className="font-semibold">Tạo lại bằng AI</span> để hồ sơ đúng người — mọi bài sau mới
+                bám được bạn.
+              </p>
+            </div>
+          ) : null}
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
           <p className="text-sm leading-6 text-muted-foreground">

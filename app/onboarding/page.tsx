@@ -169,6 +169,9 @@ export default function OnboardingPage() {
               <div className="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
                 <span className="font-medium">
                   Câu {index + 1}/{ONBOARDING_QUESTIONS.length}
+                  {index < ONBOARDING_QUESTIONS.length - 1
+                    ? ` · Còn ${ONBOARDING_QUESTIONS.length - index - 1} câu`
+                    : ' · Câu cuối'}
                 </span>
                 <span>{Math.round(progress)}%</span>
               </div>
@@ -197,6 +200,13 @@ export default function OnboardingPage() {
           {question.hint ? (
             <p className="mt-3 text-sm leading-6 text-muted-foreground">{question.hint}</p>
           ) : null}
+          <p className="mt-4 border-t border-border/60 pt-3 text-xs leading-5 text-muted-foreground">
+            {index === 0
+              ? 'Mình đang lắng nghe — trả lời thật, không cần hay.'
+              : index >= ONBOARDING_QUESTIONS.length - 2
+                ? 'Gần xong rồi. Sau câu này mình sẽ dựng hồ sơ cho bạn.'
+                : 'Không sao nếu chưa hoàn hảo. Mình cần sự thật hơn sự trau chuốt.'}
+          </p>
         </div>
 
         {showFollowUp ? (
