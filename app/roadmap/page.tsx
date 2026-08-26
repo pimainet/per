@@ -10,6 +10,7 @@ import { AiWaiting } from '@/components/ai-waiting'
 import { SAMPLE_ROADMAP } from '@/lib/mock-data'
 import {
   loadBrandProfile,
+  loadDrafts,
   loadRoadmap,
   replaceDraftsWith,
   saveRoadmap,
@@ -27,6 +28,10 @@ export default function RoadmapPage() {
   const [error, setError] = useState<string | null>(null)
   const [source, setSource] = useState<'claude' | 'db' | 'empty'>('empty')
   const [postsPerWeek, setPostsPerWeek] = useState(3)
+  const [alreadySaved, setAlreadySaved] = useState(false)
+  const [hasDrafts, setHasDrafts] = useState(false)
+  const [savingPace, setSavingPace] = useState(false)
+  const [paceMsg, setPaceMsg] = useState<string | null>(null)
   const [regenUsed, setRegenUsed] = useState(0)
   const REGEN_LIMIT = 2
 
@@ -48,8 +53,10 @@ export default function RoadmapPage() {
       setR(data.roadmap)
       setSource('claude')
       await saveRoadmap({ ...data.roadmap, postsPerWeek })
-      // Chỉ tính quota khi user chủ động tạo lại (không tính lần đầu auto)
+      // Chỉ cập nhật lộ trình — không mở lại tạo batch bài
+      setAlreadySaved(true)
       setGenerating(false)
+      setPaceMsg('Đã cập nhật lộ trình. Bài mới vẫn theo lịch — không tạo thêm batch.')
       return true
     } catch {
       setError('Lỗi kết nối khi tạo lộ trình')
@@ -65,18 +72,27 @@ export default function RoadmapPage() {
     } catch {}
     let cancelled = false
     ;(async () => {
-      const [rm, bp] = await Promise.all([loadRoadmap(), loadBrandProfile()])
+      const [rm, bp, dr] = await Promise.all([
+        loadRoadmap(),
+        loadBrandProfile(),
+        loadDrafts(),
+      ])
       if (cancelled) return
 
       const prof =
         bp.ok && !bp.empty && bp.data?.profile ? bp.data.profile : null
       setProfile(prof)
 
+      if (dr.ok) {
+        setHasDrafts((dr.drafts || []).length > 0)
+      }
+
       if (rm.ok && !rm.empty && rm.data) {
         setR(rm.data)
         const n = (rm.data as { postsPerWeek?: number }).postsPerWeek
         if (typeof n === 'number' && n > 0) setPostsPerWeek(n)
         setSource('db')
+        setAlreadySaved(true)
         setLoading(false)
         return
       }
@@ -94,6 +110,20 @@ export default function RoadmapPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  async function savePace() {
+    setSavingPace(true)
+    setPaceMsg(null)
+    setError(null)
+    const saveRes = await saveRoadmap({ ...r, postsPerWeek })
+    setSavingPace(false)
+    if (!saveRes.ok && saveRes.reason === 'db_error') {
+      setError(saveRes.message || 'Không lưu được nhịp đăng')
+      return
+    }
+    setAlreadySaved(true)
+    setPaceMsg(`Đã lưu nhịp ${postsPerWeek} bài/tuần. Lịch tự soạn sẽ bám theo.`)
+  }
 
   async function confirm() {
     setSaving(true)
@@ -127,6 +157,8 @@ export default function RoadmapPage() {
       }
     }
 
+    setAlreadySaved(true)
+    setHasDrafts(true)
     setSaving(false)
     router.push('/drafts')
   }
@@ -290,16 +322,63 @@ export default function RoadmapPage() {
       </div>
 
       <div className="sticky-action">
-        <div className="page-shell !px-0">
-          <button
-            type="button"
-            onClick={confirm}
-            disabled={saving}
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-sm font-semibold text-primary-foreground shadow-[0_12px_28px_-14px_rgba(30,58,138,0.55)] hover:bg-primary/92 disabled:opacity-60"
-          >
-            {saving ? 'Đang tạo bài bằng AI...' : 'Xác nhận lộ trình & tạo bài chờ duyệt'}
-            <ArrowRight className="size-4" />
-          </button>
+        <div className="page-shell space-y-2 !px-0">
+          {paceMsg ? (
+            <p className="text-center text-xs text-primary">{paceMsg}</p>
+          ) : null}
+
+          {/* Đã có lộ trình + đã có bài → không cho bấm tạo batch nữa */}
+          {alreadySaved && hasDrafts ? (
+            <div className="rounded-2xl border border-border/80 bg-card px-4 py-3.5 text-center">
+              <p className="text-sm font-semibold text-foreground">Lộ trình đã lưu · Bài đang chạy theo lịch</p>
+              <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
+                Không cần bấm tạo lại. Đổi nhịp 3/5/7 bên trên rồi bấm Lưu nhịp nếu cần.
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={savePace}
+                  disabled={savingPace}
+                  className="inline-flex h-10 items-center justify-center rounded-2xl border border-border bg-background text-sm font-semibold"
+                >
+                  {savingPace ? 'Đang lưu...' : 'Lưu nhịp'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push('/drafts')}
+                  className="inline-flex h-10 items-center justify-center gap-1 rounded-2xl bg-primary text-sm font-semibold text-primary-foreground"
+                >
+                  Chờ duyệt
+                  <ArrowRight className="size-4" />
+                </button>
+              </div>
+            </div>
+          ) : alreadySaved && !hasDrafts ? (
+            <div className="space-y-2">
+              <p className="text-center text-xs text-muted-foreground">
+                Lộ trình đã lưu nhưng chưa có bài — soạn batch đầu một lần.
+              </p>
+              <button
+                type="button"
+                onClick={confirm}
+                disabled={saving}
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-sm font-semibold text-primary-foreground disabled:opacity-60"
+              >
+                {saving ? 'Đang soạn bài...' : 'Soạn batch bài đầu tiên'}
+                <ArrowRight className="size-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={confirm}
+              disabled={saving}
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-sm font-semibold text-primary-foreground shadow-[0_12px_28px_-14px_rgba(30,58,138,0.55)] hover:bg-primary/92 disabled:opacity-60"
+            >
+              {saving ? 'Đang soạn bài...' : 'Xác nhận lộ trình & tạo bài chờ duyệt'}
+              <ArrowRight className="size-4" />
+            </button>
+          )}
         </div>
       </div>
     </main>
