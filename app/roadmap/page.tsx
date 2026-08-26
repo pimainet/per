@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, Loader2, RefreshCw } from 'lucide-react'
 
 import { AppNav } from '@/components/app-nav'
 import { Button } from '@/components/ui/button'
+import { AiWaiting } from '@/components/ai-waiting'
 import { SAMPLE_ROADMAP } from '@/lib/mock-data'
 import {
   loadBrandProfile,
@@ -25,6 +26,7 @@ export default function RoadmapPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [source, setSource] = useState<'claude' | 'db' | 'empty'>('empty')
+  const [postsPerWeek, setPostsPerWeek] = useState(3)
   const [regenUsed, setRegenUsed] = useState(0)
   const REGEN_LIMIT = 2
 
@@ -45,7 +47,7 @@ export default function RoadmapPage() {
       }
       setR(data.roadmap)
       setSource('claude')
-      await saveRoadmap(data.roadmap)
+      await saveRoadmap({ ...data.roadmap, postsPerWeek })
       // Chỉ tính quota khi user chủ động tạo lại (không tính lần đầu auto)
       setGenerating(false)
       return true
@@ -72,6 +74,8 @@ export default function RoadmapPage() {
 
       if (rm.ok && !rm.empty && rm.data) {
         setR(rm.data)
+        const n = (rm.data as { postsPerWeek?: number }).postsPerWeek
+        if (typeof n === 'number' && n > 0) setPostsPerWeek(n)
         setSource('db')
         setLoading(false)
         return
@@ -94,7 +98,7 @@ export default function RoadmapPage() {
   async function confirm() {
     setSaving(true)
     setError(null)
-    const saveRes = await saveRoadmap(r)
+    const saveRes = await saveRoadmap({ ...r, postsPerWeek })
     if (!saveRes.ok && saveRes.reason === 'db_error') {
       setError(saveRes.message || 'Không lưu được lộ trình')
       setSaving(false)
@@ -127,15 +131,21 @@ export default function RoadmapPage() {
     router.push('/drafts')
   }
 
-  if (loading || generating) {
+  if (loading && !generating) {
     return (
       <main className="flex min-h-svh flex-col items-center justify-center gap-3 text-muted-foreground">
         <Loader2 className="size-5 animate-spin" />
-        <span className="text-sm">
-          {generating ? 'Claude đang thiết kế lộ trình theo hồ sơ của bạn...' : 'Đang tải...'}
-        </span>
+        <span className="text-sm">Đang mở lộ trình...</span>
       </main>
     )
+  }
+
+  if (generating) {
+    return <AiWaiting kind="roadmap" />
+  }
+
+  if (saving) {
+    return <AiWaiting kind="drafts" title="Mình đang soạn bài chờ duyệt" />
   }
 
   return (
@@ -239,6 +249,37 @@ export default function RoadmapPage() {
                 </div>
               ))}
             </div>
+          </section>
+
+          <section className="card-elevated p-5">
+            <h3 className="text-sm font-semibold">Nhịp viết mỗi tuần</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Hệ thống tự soạn bài theo lịch. Bạn chỉ cần duyệt.
+            </p>
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {[
+                { n: 3, label: '3 bài', sub: 'Nhẹ' },
+                { n: 5, label: '5 bài', sub: 'Vừa' },
+                { n: 7, label: '7 bài', sub: 'Mỗi ngày' },
+              ].map((opt) => (
+                <button
+                  key={opt.n}
+                  type="button"
+                  onClick={() => setPostsPerWeek(opt.n)}
+                  className={`rounded-2xl border px-2 py-3 text-center transition ${
+                    postsPerWeek === opt.n
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border/80 bg-background text-muted-foreground'
+                  }`}
+                >
+                  <span className="block text-sm font-semibold">{opt.label}</span>
+                  <span className="mt-0.5 block text-[11px] opacity-80">{opt.sub}</span>
+                </button>
+              ))}
+            </div>
+            <p className="mt-3 text-[11px] leading-5 text-muted-foreground">
+              Ví dụ 3 bài: Thứ 2 · 4 · 6. Không tạo thêm nếu còn ≥5 bài chờ duyệt.
+            </p>
           </section>
 
           <section className="card-elevated p-5">

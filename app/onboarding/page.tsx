@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Send } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { AiWaiting } from '@/components/ai-waiting'
 import { AppNav } from '@/components/app-nav'
 import { ONBOARDING_QUESTIONS, SAMPLE_BRAND_PROFILE } from '@/lib/mock-data'
 import { loadBrandProfile, saveBrandProfile } from '@/lib/supabase/db'
@@ -135,6 +136,10 @@ export default function OnboardingPage() {
         Đang kiểm tra hồ sơ...
       </main>
     )
+  }
+
+  if (saving) {
+    return <AiWaiting kind="profile" />
   }
 
   return (

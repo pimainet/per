@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Lock, Pencil, Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { AiWaiting } from '@/components/ai-waiting'
 import { AppNav } from '@/components/app-nav'
 import { SAMPLE_BRAND_PROFILE } from '@/lib/mock-data'
 import { clearDownstreamData, loadBrandProfile, saveBrandProfile } from '@/lib/supabase/db'
@@ -147,6 +148,10 @@ export default function BrandProfilePage() {
         <span className="ml-2 text-sm">Đang tải hồ sơ...</span>
       </main>
     )
+  }
+
+  if (regenerating) {
+    return <AiWaiting kind="profile" title="Mình đang tạo lại hồ sơ" />
   }
 
   return (
