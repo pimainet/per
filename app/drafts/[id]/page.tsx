@@ -36,6 +36,7 @@ export default function DraftDetailPage() {
   const [imageLoading, setImageLoading] = useState(false)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [working, setWorking] = useState(false)
+  const [remainingPending, setRemainingPending] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -50,6 +51,11 @@ export default function DraftDetailPage() {
           setContent(found.content)
           setApproved(found.status === 'approved')
         }
+        setRemainingPending(
+          result.drafts.filter(
+            (d) => d.status !== 'approved' && (d.dbId || d.id) !== params.id,
+          ).length,
+        )
       }
       setLoading(false)
     })()
@@ -274,9 +280,20 @@ export default function DraftDetailPage() {
         </div>
         {saved && <p className="page-shell mt-2 !px-0 text-center text-xs text-primary">Đã lưu thay đổi</p>}
         {approved && !isEditing && (
-          <p className="page-shell mt-2 !px-0 text-center text-xs text-muted-foreground">
-            Đã copy nội dung. Dán sang LinkedIn/Facebook để đăng.
-          </p>
+          <div className="page-shell mt-3 space-y-2 !px-0 text-center">
+            <p className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2.5 text-sm leading-6 text-emerald-900">
+              Đã copy xong. Dán lên {draft?.platform || 'mạng xã hội'} khi bạn sẵn sàng — không cần sửa nếu
+              thấy đúng giọng.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {remainingPending > 0
+                ? `Còn ${remainingPending} bài chờ duyệt. Làm tiếp khi rảnh — mình giữ nhịp cho bạn.`
+                : 'Hết bài chờ rồi. Mình sẽ soạn thêm đúng lịch tuần — bạn không cần bấm tạo.'}
+            </p>
+            <Link href="/drafts" className="inline-block text-sm font-semibold text-primary">
+              {remainingPending > 0 ? 'Duyệt bài tiếp →' : 'Về danh sách chờ duyệt →'}
+            </Link>
+          </div>
         )}
       </div>
     </main>

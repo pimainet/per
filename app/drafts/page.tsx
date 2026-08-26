@@ -7,7 +7,8 @@ import { ArrowLeft, FileText, Loader2 } from 'lucide-react'
 
 import { AppNav } from '@/components/app-nav'
 import type { Draft } from '@/lib/mock-data'
-import { loadDrafts } from '@/lib/supabase/db'
+import { loadDrafts, loadRoadmap } from '@/lib/supabase/db'
+import { parsePostsPerWeek, scheduleDays } from '@/lib/schedule'
 
 type DraftRow = Draft & { dbId?: string }
 
@@ -16,13 +17,26 @@ export default function DraftsPage() {
   const [filter, setFilter] = useState<'all' | 'LinkedIn' | 'Facebook'>('all')
   const [drafts, setDrafts] = useState<DraftRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [scheduleHint, setScheduleHint] = useState('T2 · T4 · T6')
+  const [postsPerWeek, setPostsPerWeek] = useState(3)
+  const [pendingCount, setPendingCount] = useState(0)
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const result = await loadDrafts()
+      const [result, rm] = await Promise.all([loadDrafts(), loadRoadmap()])
       if (cancelled) return
-      if (result.ok) setDrafts(result.drafts)
+      if (result.ok) {
+        setDrafts(result.drafts)
+        setPendingCount(result.drafts.filter((d) => d.status !== 'approved').length)
+      }
+      if (rm.ok && !rm.empty && rm.data) {
+        const n = parsePostsPerWeek(rm.data)
+        setPostsPerWeek(n)
+        const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+        const labels = scheduleDays(n).map((d) => dayNames[d])
+        setScheduleHint(labels.join(' · '))
+      }
       setLoading(false)
     })()
     return () => {
@@ -48,7 +62,7 @@ export default function DraftsPage() {
             </button>
             <div className="flex-1">
               <h1 className="text-base font-semibold tracking-tight">Chờ duyệt</h1>
-              <p className="text-xs text-muted-foreground">Bài AI đã soạn sẵn</p>
+              <p className="text-xs text-muted-foreground">Bài AI soạn sẵn · Tự thêm theo lịch tuần</p>
             </div>
             <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
               {visible.length} bài
@@ -73,23 +87,53 @@ export default function DraftsPage() {
           ))}
         </div>
 
+        {!loading && visible.length > 0 ? (
+          <div className="mb-3 rounded-2xl border border-primary/15 bg-primary/5 px-3.5 py-3 text-left">
+            <p className="text-xs leading-5 text-foreground/90">
+              <span className="font-semibold text-primary">Mình: </span>
+              {pendingCount > 0
+                ? `Có ${pendingCount} bài đang chờ bạn. Duyệt khi sẵn sàng — không cần viết từ đầu.`
+                : `Tuần này lịch ${scheduleHint}. Bài mới sẽ xuất hiện đúng ngày.`}
+            </p>
+          </div>
+        ) : null}
+
         {loading ? (
           <div className="flex items-center justify-center gap-2 py-20 text-sm text-muted-foreground">
             <Loader2 className="size-4 animate-spin" />
             Đang tải bài...
           </div>
         ) : visible.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-20 text-center">
-            <div className="flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+          <div className="flex flex-col items-center gap-4 py-12 text-center">
+            <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               <FileText className="size-6" />
             </div>
-            <h2 className="text-lg font-semibold">Chưa có bài nào</h2>
-            <p className="max-w-xs text-sm leading-6 text-muted-foreground">
-              Vào Lộ trình → bấm “Xác nhận lộ trình” để tạo bài mẫu lần đầu.
-            </p>
-            <Link href="/roadmap" className="text-sm font-semibold text-primary">
-              Đi tới lộ trình →
-            </Link>
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold">Tạm thời chưa có bài chờ</h2>
+              <p className="mx-auto max-w-sm text-sm leading-6 text-muted-foreground">
+                Mình vẫn ở đây. Bài mới được soạn theo lịch — không phải app dừng.
+              </p>
+            </div>
+            <div className="w-full max-w-sm rounded-2xl border border-border/80 bg-card p-4 text-left">
+              <p className="text-[11px] font-semibold tracking-wide text-primary uppercase">
+                Lịch tuần này
+              </p>
+              <p className="mt-2 text-sm font-medium">
+                {postsPerWeek} bài/tuần · {scheduleHint}
+              </p>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                Mỗi sáng đúng ngày, mình thêm bài vào đây. Nếu còn nhiều bài chưa duyệt, mình tạm nghỉ
+                tạo thêm cho đỡ rối.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Link href="/roadmap" className="text-sm font-semibold text-primary">
+                Xem / chỉnh lộ trình →
+              </Link>
+              <p className="text-[11px] text-muted-foreground">
+                Lần đầu chưa có bài? Vào Lộ trình bấm xác nhận để mình soạn batch đầu.
+              </p>
+            </div>
           </div>
         ) : (
           <div className="flex flex-col gap-3 pb-12">
