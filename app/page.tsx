@@ -10,10 +10,45 @@ export default function WelcomePage() {
   const [progress, setProgress] = useState<UserProgress | null>(null)
 
   useEffect(() => {
-    getUserProgress().then((p) => {
-    setProgress(p)
-    if (p.loggedIn) ensureUserProfile()
-  })
+    let cancelled = false
+    let settled = false
+    const timer = window.setTimeout(() => {
+      if (!cancelled && !settled) {
+        setProgress({
+          loggedIn: false,
+          hasProfile: false,
+          profileLocked: false,
+          hasRoadmap: false,
+          draftCount: 0,
+        })
+      }
+    }, 4000)
+
+    getUserProgress()
+      .then((p) => {
+        if (cancelled) return
+        settled = true
+        setProgress(p)
+        if (p.loggedIn) ensureUserProfile().catch(() => {})
+      })
+      .catch(() => {
+        if (!cancelled) {
+          settled = true
+          setProgress({
+            loggedIn: false,
+            hasProfile: false,
+            profileLocked: false,
+            hasRoadmap: false,
+            draftCount: 0,
+          })
+        }
+      })
+      .finally(() => window.clearTimeout(timer))
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
   }, [])
 
   const ctaHref = !progress?.loggedIn

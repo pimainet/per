@@ -7,10 +7,19 @@ export async function updateSession(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  // Chưa cấu hình Supabase → cho qua (demo mode)
   if (!url || !key) {
     return supabaseResponse
   }
+
+  const path = request.nextUrl.pathname
+
+  // Callback tự xử lý session phía client — middleware chỉ refresh cookie nhẹ
+  const isCallback = path.startsWith('/auth/callback')
+  const isPublic =
+    path === '/' ||
+    path.startsWith('/login') ||
+    path.startsWith('/auth') ||
+    path.startsWith('/waitlist')
 
   const supabase = createServerClient(url, key, {
     cookies: {
@@ -27,19 +36,16 @@ export async function updateSession(request: NextRequest) {
     },
   })
 
+  // getUser để refresh session (cần cho cookie)
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const path = request.nextUrl.pathname
-  const isAuthPage = path.startsWith('/login')
-  const isPublic =
-    path === '/' ||
-    path.startsWith('/login') ||
-    path.startsWith('/auth') ||
-    path.startsWith('/waitlist')
+  if (isCallback) {
+    return supabaseResponse
+  }
 
-  // Bảo vệ các trang app chính khi đã bật Supabase
+  const isAuthPage = path.startsWith('/login')
   const isProtected =
     path.startsWith('/onboarding') ||
     path.startsWith('/brand-profile') ||
@@ -53,9 +59,10 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
+  // Đã login mà vào /login → về trang chủ (nhẹ), không ép onboarding
   if (isAuthPage && user) {
     const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = '/onboarding'
+    redirectUrl.pathname = '/'
     return NextResponse.redirect(redirectUrl)
   }
 
