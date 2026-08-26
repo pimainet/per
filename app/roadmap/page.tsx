@@ -33,6 +33,8 @@ export default function RoadmapPage() {
   const [hasDrafts, setHasDrafts] = useState(false)
   const [savingPace, setSavingPace] = useState(false)
   const [paceMsg, setPaceMsg] = useState<string | null>(null)
+  const [paceSaved, setPaceSaved] = useState(false)
+  const [savedPostsPerWeek, setSavedPostsPerWeek] = useState<number | null>(null)
   const [regenUsed, setRegenUsed] = useState(0)
   const REGEN_LIMIT = 2
 
@@ -91,7 +93,11 @@ export default function RoadmapPage() {
       if (rm.ok && !rm.empty && rm.data) {
         setR(rm.data)
         const n = (rm.data as { postsPerWeek?: number }).postsPerWeek
-        if (typeof n === 'number' && n > 0) setPostsPerWeek(n)
+        if (typeof n === 'number' && n > 0) {
+          setPostsPerWeek(n)
+          setSavedPostsPerWeek(n)
+          setPaceSaved(true)
+        }
         setSource('db')
         setAlreadySaved(true)
         setLoading(false)
@@ -123,7 +129,9 @@ export default function RoadmapPage() {
       return
     }
     setAlreadySaved(true)
-    setPaceMsg(`Đã lưu nhịp ${postsPerWeek} bài/tuần. Lịch tự soạn sẽ bám theo.`)
+    setSavedPostsPerWeek(postsPerWeek)
+    setPaceSaved(true)
+    setPaceMsg(`Đã lưu · ${postsPerWeek} bài/tuần. Lịch sẽ soạn đúng nhịp này.`)
   }
 
   async function confirm() {
@@ -299,7 +307,15 @@ export default function RoadmapPage() {
                 <button
                   key={opt.n}
                   type="button"
-                  onClick={() => setPostsPerWeek(opt.n)}
+                  onClick={() => {
+                    setPostsPerWeek(opt.n)
+                    if (savedPostsPerWeek !== null && opt.n !== savedPostsPerWeek) {
+                      setPaceSaved(false)
+                      setPaceMsg(null)
+                    } else if (savedPostsPerWeek === opt.n) {
+                      setPaceSaved(true)
+                    }
+                  }}
                   className={`rounded-2xl border px-2 py-3 text-center transition ${
                     postsPerWeek === opt.n
                       ? 'border-primary bg-primary/10 text-primary'
@@ -340,10 +356,18 @@ export default function RoadmapPage() {
                 <button
                   type="button"
                   onClick={savePace}
-                  disabled={savingPace}
-                  className="inline-flex h-10 items-center justify-center rounded-2xl border border-border bg-background text-sm font-semibold"
+                  disabled={savingPace || (paceSaved && postsPerWeek === savedPostsPerWeek)}
+                  className={`inline-flex h-10 items-center justify-center rounded-2xl text-sm font-semibold disabled:opacity-100 ${
+                    paceSaved && postsPerWeek === savedPostsPerWeek
+                      ? 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-800'
+                      : 'border border-border bg-background'
+                  }`}
                 >
-                  {savingPace ? 'Đang lưu...' : 'Lưu nhịp'}
+                  {savingPace
+                    ? 'Đang lưu...'
+                    : paceSaved && postsPerWeek === savedPostsPerWeek
+                      ? '✓ Đã lưu'
+                      : 'Lưu nhịp'}
                 </button>
                 <button
                   type="button"
