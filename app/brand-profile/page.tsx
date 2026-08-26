@@ -42,8 +42,8 @@ export default function BrandProfilePage() {
         setProfileSource(src)
         setStatus(
           src === 'claude'
-            ? 'Hồ sơ tạo bởi AI từ câu trả lời của bạn'
-            : 'Hồ sơ chưa phải bản AI đầy đủ — nên tạo lại trước khi khóa',
+            ? 'Hồ sơ đã dựng từ câu trả lời của bạn'
+            : null,
         )
       } else if (result.ok && result.empty) {
         setStatus('Chưa có hồ sơ — hãy hoàn thành onboarding')
@@ -98,7 +98,8 @@ export default function BrandProfilePage() {
       if (!result.ok) {
         setError('Tạo được profile nhưng lưu DB thất bại')
       } else {
-        setStatus('Đã tạo lại hồ sơ bằng Claude')
+        setStatus('Đã dựng lại hồ sơ từ câu trả lời của bạn')
+        setProfileSource('claude')
         setLocked(false)
         try {
           const key = 'pba_regen_' + new Date().toISOString().slice(0, 7)
@@ -108,7 +109,7 @@ export default function BrandProfilePage() {
         } catch {}
       }
     } catch {
-      setError('Lỗi kết nối API Claude')
+      setError('Không kết nối được. Kiểm tra mạng và thử lại.')
     }
     setRegenerating(false)
   }
@@ -186,21 +187,20 @@ export default function BrandProfilePage() {
 
         <div className="flex flex-col gap-4 py-6">
           {status ? <p className="text-xs text-muted-foreground">{status}</p> : null}
-          {profileSource === 'mock' ? (
+          {profileSource === 'mock' && !locked ? (
             <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm leading-6 text-amber-950">
-              <p className="font-semibold">Chưa nên khóa vội</p>
+              <p className="font-semibold">Hồ sơ này chưa đủ cá nhân</p>
               <p className="mt-1 text-amber-900/90">
-                Bản này chưa được dựng từ câu trả lời của bạn bằng AI. Bấm{' '}
-                <span className="font-semibold">Tạo lại bằng AI</span> để hồ sơ đúng người — mọi bài sau mới
-                bám được bạn.
+                Bấm <span className="font-semibold">Tạo lại hồ sơ</span> để mình dựng lại từ đúng câu trả lời
+                của bạn — bài viết sau mới bám được giọng và góc nhìn của bạn.
               </p>
             </div>
           ) : null}
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
           <p className="text-sm leading-6 text-muted-foreground">
-            Khi nối Claude, phần này sẽ là profile thật từ câu trả lời của bạn. Hiện có thể khóa và lưu vào
-            tài khoản.
+            Đây là những gì mình hiểu về bạn. Xem lại trước khi khóa — sau khi khóa, lộ trình và bài viết sẽ
+            bám theo hồ sơ này.
           </p>
 
           <section className="card-elevated p-5">
@@ -302,7 +302,7 @@ export default function BrandProfilePage() {
             disabled={regenerating || !answers.length || regenUsed >= REGEN_LIMIT}
           >
             <Pencil className="size-4" />
-            {regenerating ? 'Claude đang viết...' : `Tạo lại bằng AI (${Math.max(0, REGEN_LIMIT - regenUsed)}/${REGEN_LIMIT})`}
+            {regenerating ? 'Đang dựng lại hồ sơ...' : `Tạo lại hồ sơ (${Math.max(0, REGEN_LIMIT - regenUsed)}/${REGEN_LIMIT})`}
           </Button>
           <Button className="h-11 flex-1 rounded-2xl" onClick={lockProfile} disabled={saving || locked}>
             <Lock className="size-4" />
