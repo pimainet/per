@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { ArrowLeft, Mail } from 'lucide-react'
@@ -8,14 +8,17 @@ import { ArrowLeft, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
 
-export default function LoginPage() {
+function LoginForm() {
   const searchParams = useSearchParams()
   const next = searchParams.get('next') || '/'
+  const authError = searchParams.get('error')
 
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(
+    authError === 'auth' ? 'Đăng nhập chưa thành công. Thử lại bằng Google hoặc email.' : null,
+  )
 
   const configured = isSupabaseConfigured()
 
@@ -70,13 +73,18 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-svh flex-col items-center justify-center px-6 py-12 text-foreground">
       <div className="w-full max-w-md">
-        <Link href="/" className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          href="/"
+          className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="size-4" />
           Về trang chủ
         </Link>
 
         <div className="card-elevated p-6 sm:p-8">
-          <p className="text-[11px] font-semibold tracking-[0.12em] text-primary uppercase">Nhân viên AI</p>
+          <p className="text-[11px] font-semibold tracking-[0.12em] text-primary uppercase">
+            Nhân viên AI
+          </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight">Đăng nhập để bắt đầu</h1>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Để nhớ đúng hồ sơ, giọng viết và bài của bạn — cần đăng nhập một lần.
@@ -108,7 +116,12 @@ export default function LoginPage() {
                 placeholder="email@example.com"
                 className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
-              <Button type="submit" variant="outline" className="h-11 w-full rounded-2xl" disabled={loading}>
+              <Button
+                type="submit"
+                variant="outline"
+                className="h-11 w-full rounded-2xl"
+                disabled={loading}
+              >
                 <Mail className="size-4" />
                 Gửi link đăng nhập
               </Button>
@@ -124,5 +137,19 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-svh items-center justify-center text-sm text-muted-foreground">
+          Đang tải...
+        </main>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   )
 }
