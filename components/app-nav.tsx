@@ -31,7 +31,7 @@ export function AppNav({ showHome = true }: { showHome?: boolean }) {
             <Link
               key={item.href}
               href={item.href}
-              className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${
+              className={`shrink-0 rounded-full px-3.5 py-2 text-[11px] font-semibold transition ${
                 active
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground hover:text-foreground'

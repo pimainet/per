@@ -82,3 +82,20 @@
     @apply fixed inset-x-0 bottom-0 border-t border-border/80 bg-background/90 px-5 py-3 backdrop-blur-md sm:px-8;
   }
 }
+
+
+/* Mobile companion shell */
+@supports (padding: max(0px)) {
+  .page-shell {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  .sticky-action {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+}
+
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
