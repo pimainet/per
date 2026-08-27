@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { FileText, Home, Map, User } from 'lucide-react'
+import { BookOpen, FileText, Home, Map, User } from 'lucide-react'
 
 const ITEMS = [
   { href: '/', label: 'Home', icon: Home, match: (p: string) => p === '/' },
@@ -11,6 +11,12 @@ const ITEMS = [
     label: 'Hồ sơ',
     icon: User,
     match: (p: string) => p.startsWith('/brand-profile'),
+  },
+  {
+    href: '/goc-that',
+    label: 'Góc thật',
+    icon: BookOpen,
+    match: (p: string) => p.startsWith('/goc-that'),
   },
   {
     href: '/roadmap',
@@ -35,7 +41,7 @@ export function BottomNav() {
       style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
       aria-label="Điều hướng chính"
     >
-      <ul className="mx-auto flex h-14 max-w-lg items-stretch justify-around px-1">
+      <ul className="mx-auto flex h-14 max-w-lg items-stretch justify-around px-0.5">
         {ITEMS.map((item) => {
           const active = item.match(pathname)
           const Icon = item.icon
@@ -48,11 +54,11 @@ export function BottomNav() {
                 }`}
               >
                 <span
-                  className={`flex size-8 items-center justify-center rounded-xl ${
+                  className={`flex size-7 items-center justify-center rounded-xl ${
                     active ? 'bg-primary/12' : ''
                   }`}
                 >
-                  <Icon className="size-5" strokeWidth={active ? 2.25 : 1.75} />
+                  <Icon className="size-[1.15rem]" strokeWidth={active ? 2.25 : 1.75} />
                 </span>
                 {item.label}
               </Link>

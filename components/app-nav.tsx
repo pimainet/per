@@ -6,6 +6,7 @@ import { Home } from 'lucide-react'
 
 const LINKS = [
   { href: '/brand-profile', label: 'Hồ sơ' },
+  { href: '/goc-that', label: 'Góc thật' },
   { href: '/roadmap', label: 'Lộ trình' },
   { href: '/drafts', label: 'Chờ duyệt' },
 ]
