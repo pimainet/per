@@ -6,16 +6,14 @@ import { BookOpen, Loader2, Plus, Trash2 } from 'lucide-react'
 
 import { AppNav } from '@/components/app-nav'
 import { BottomNav } from '@/components/bottom-nav'
-import { Button } from '@/components/ui/button'
 import {
   addIngredient,
   deleteIngredient,
   listIngredients,
   type Ingredient,
-} from '@/lib/supabase/db'
+} from '@/lib/supabase/ingredients'
 
-const PLACEHOLDER = `Gợi ý khung một dòng (không cần hay):
-Tình huống → việc xảy ra → bài học một câu.
+const PLACEHOLDER = `Gợi ý khung: Tình huống → việc xảy ra → bài học một câu.
 
 Ví dụ:
 • Pitch khách bị từ chối vì… → mình học được…
@@ -30,14 +28,17 @@ export default function GocThatPage() {
   const [error, setError] = useState<string | null>(null)
   const [okMsg, setOkMsg] = useState<string | null>(null)
 
-  async function reload() {
-    const res = await listIngredients()
-    if (res.ok) setItems(res.items)
-    setLoading(false)
-  }
-
   useEffect(() => {
-    reload()
+    let cancelled = false
+    ;(async () => {
+      const res = await listIngredients()
+      if (cancelled) return
+      if (res.ok) setItems(res.items)
+      setLoading(false)
+    })()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   async function submit() {
@@ -48,16 +49,18 @@ export default function GocThatPage() {
     setSaving(false)
     if (!res.ok) {
       if (res.reason === 'empty') setError('Hãy viết ít nhất một câu thật.')
-      else if (res.reason === 'too_long') setError('Ngắn lại dưới 2000 ký tự giúp mình.')
+      else if (res.reason === 'too_long') setError('Ngắn lại dưới 2000 ký tự.')
       else if (res.reason === 'not_logged_in') {
         setError('Bạn cần đăng nhập.')
         router.push('/login?next=/goc-that')
-      } else setError(res.message || 'Chưa lưu được. Thử lại.')
+      } else setError(('message' in res && res.message) || 'Chưa lưu được. Thử lại.')
       return
     }
     setText('')
-    setOkMsg('Đã nhận. Lần soạn bài sau mình sẽ tham khảo góc này.')
-    if (res.item) setItems((prev) => [res.item!, ...prev])
+    setOkMsg(
+      'Đã nhận. Lần soạn bài sau mình chỉ dùng nếu hợp lộ trình — không nhét vào mọi bài.',
+    )
+    if (res.item) setItems((prev) => [res.item, ...prev])
   }
 
   async function remove(id: string) {
@@ -73,8 +76,8 @@ export default function GocThatPage() {
           <div>
             <h1 className="text-base font-semibold tracking-tight">Góc thật</h1>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              Gửi sự thật / bài học ngắn. Mình chỉ dùng khi hợp lộ trình — không bắt buộc, không cần viết
-              đẹp.
+              Gửi sự thật / bài học ngắn. Mình chỉ dùng khi hợp lộ trình — không bắt buộc, không cần
+              viết đẹp.
             </p>
           </div>
         </header>
@@ -101,10 +104,11 @@ export default function GocThatPage() {
             />
             <div className="mt-3 flex items-center justify-between gap-2">
               <span className="text-[11px] text-muted-foreground">{text.length}/2000</span>
-              <Button
-                className="h-10 rounded-2xl px-4"
-                onClick={submit}
+              <button
+                type="button"
+                onClick={() => void submit()}
                 disabled={saving || !text.trim()}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
               >
                 {saving ? (
                   <>
@@ -117,7 +121,7 @@ export default function GocThatPage() {
                     Gửi cho mình
                   </>
                 )}
-              </Button>
+              </button>
             </div>
             {error ? <p className="mt-2 text-sm text-destructive">{error}</p> : null}
             {okMsg ? <p className="mt-2 text-sm text-primary">{okMsg}</p> : null}
@@ -136,8 +140,8 @@ export default function GocThatPage() {
               <div className="rounded-2xl border border-dashed border-border/80 bg-muted/30 px-4 py-8 text-center">
                 <p className="text-sm font-medium">Chưa có góc nào</p>
                 <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                  Mỗi góc là nguyên liệu thô. Lộ trình và hồ sơ vẫn là xương sống; góc thật chỉ thêm thịt
-                  khi hợp chủ đề.
+                  Mỗi góc là nguyên liệu thô. Lộ trình và hồ sơ vẫn là xương sống; góc thật chỉ thêm
+                  thịt khi hợp chủ đề.
                 </p>
               </div>
             ) : (
@@ -153,7 +157,7 @@ export default function GocThatPage() {
                       </span>
                       <button
                         type="button"
-                        onClick={() => remove(item.id)}
+                        onClick={() => void remove(item.id)}
                         className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-destructive"
                       >
                         <Trash2 className="size-3.5" />

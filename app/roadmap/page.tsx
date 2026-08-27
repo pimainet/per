@@ -16,6 +16,7 @@ import {
   replaceDraftsWith,
   saveRoadmap,
 } from '@/lib/supabase/db'
+import { listIngredients } from '@/lib/supabase/ingredients'
 
 type Roadmap = typeof SAMPLE_ROADMAP
 
@@ -147,10 +148,12 @@ export default function RoadmapPage() {
     // Tạo bài theo profile + lộ trình
     if (profile) {
       try {
+        const ing = await listIngredients()
+        const ingredients = ing.ok ? ing.items.map((i) => i.content) : []
         const res = await fetch('/api/drafts/generate', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ profile, roadmap: r }),
+          body: JSON.stringify({ profile, roadmap: r, ingredients }),
         })
         const data = await res.json()
         if (res.ok && Array.isArray(data.drafts)) {
