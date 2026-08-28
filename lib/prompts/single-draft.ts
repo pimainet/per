@@ -6,6 +6,8 @@ THỨ TỰ ƯU TIÊN BẮT BUỘC (không đảo):
 2) Lộ trình / gợi ý hôm nay — chủ đề đúng nhịp
 3) Góc thật — chỉ gia vị (optional)
 4) Thiếu hoặc góc không hợp → vẫn viết tốt từ (1)+(2)
+5) Khớp lớp loai trong gợi ý hôm nay (Mở vấn đề / Góc nhìn / Bằng chứng) nếu có — không biến bài thành bán offer
+6) Bám narrative profile; không topic rời
 
 QUY TẮC GÓC THẬT:
 - Chỉ dùng khi cùng chủ đề với trụ cột / gợi ý hôm nay.

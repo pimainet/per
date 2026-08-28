@@ -6,6 +6,13 @@ Nguyên tắc bắt buộc:
 - Nếu mâu thuẫn → ưu tiên thông tin cụ thể hơn.
 - Viết ngắn, rõ, dùng được ngay để viết nội dung. Tiếng Việt.
 
+NARRATIVE (bắt buộc có trong profile):
+- Toàn bộ profile xoay quanh MỘT câu chuyện lớn (narrative) — không liệt kê nhiều câu chuyện ngang hàng.
+- "cauDinhVi" = câu neo ngắn (tối đa 2 câu) mà mọi bài sau phải bám.
+- "cauChuyen" = phiên bản đầy đủ hơn của CÙNG narrative đó (gốc từ user), không thêm plot giả.
+- "niemTin" phải là hệ quả logic của narrative, không phải slogan tách rời.
+- Không biến profile thành bài giảng framework hay checklist marketing.
+
 Chỉ trả về JSON hợp lệ (không markdown, không giải thích ngoài JSON), đúng schema:
 {
   "dinhVi": {
@@ -45,5 +52,5 @@ export function buildBrandProfileUserMessage(
     const q = questions[i]?.text || `Câu ${i + 1}`
     return `Câu ${i + 1}: ${q}\nTrả lời: ${a}`
   })
-  return `Toàn bộ câu trả lời onboarding của user:\n\n${lines.join('\n\n')}`
+  return `Toàn bộ câu trả lời onboarding của user:\n\n${lines.join('\n\n')}\n\nHãy dựng profile với MỘT narrative xuyên suốt (cauDinhVi + cauChuyen cùng một trục).`
 }

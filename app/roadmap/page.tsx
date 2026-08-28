@@ -17,6 +17,7 @@ import {
   saveRoadmap,
 } from '@/lib/supabase/db'
 import { listIngredients } from '@/lib/supabase/ingredients'
+import { pickIngredients } from '@/lib/ingredients/pick'
 
 type Roadmap = typeof SAMPLE_ROADMAP
 
@@ -149,7 +150,7 @@ export default function RoadmapPage() {
     if (profile) {
       try {
         const ing = await listIngredients()
-        const ingredients = ing.ok ? ing.items.map((i) => i.content) : []
+        const ingredients = ing.ok ? pickIngredients(ing.items) : []
         const res = await fetch('/api/drafts/generate', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
@@ -278,6 +279,9 @@ export default function RoadmapPage() {
 
           <section className="card-elevated p-5">
             <h3 className="text-sm font-semibold">Khung tuần mẫu</h3>
+            <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
+              Mỗi ô là một lớp dẫn dắt: Mở vấn đề · Góc nhìn · Bằng chứng — xoay quanh câu chuyện lớn của bạn.
+            </p>
             <div className="mt-3 space-y-2">
               {(r.tuanMau || []).map((row, i) => (
                 <div

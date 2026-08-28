@@ -243,7 +243,7 @@ export default function BrandProfilePage() {
           </section>
 
           <section className="card-elevated p-5">
-            <h2 className="mb-3 text-sm font-semibold">3. Câu chuyện & Nguyên liệu</h2>
+            <h2 className="mb-3 text-sm font-semibold">3. Câu chuyện lớn & Nguyên liệu</h2>
             <p className="text-sm leading-6">{profile.cauChuyen}</p>
           </section>
 
