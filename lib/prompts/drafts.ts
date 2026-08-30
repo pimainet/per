@@ -10,6 +10,18 @@ THỨ TỰ ƯU TIÊN BẮT BUỘC (không đảo):
 6) Mọi bài phải nhận ra được narrative trong profile (cauDinhVi / cauChuyen), không viết topic rời
 7) Nếu có góp ý giọng (giống/không giống): ưu tiên tránh lỗi đã nêu, bám bài được chốt "giống tôi"
 
+HOOK (bắt buộc — câu mở):
+- 1–2 câu đầu phải dừng được người đọc: tình huống cụ thể, căng thẳng nhẹ, nghịch lý, hoặc câu hỏi sắc — bám chủ đề bài.
+- CẤM mở bằng định nghĩa chung, "Trong thời đại…", "Ngày nay…", "AI đang…", hoặc tóm tắt luận điểm như báo cáo.
+- Hook phải đúng giọng profile (không clickbait sáo, không hype rỗng).
+- Loại "Bằng chứng": có thể mở bằng khoảnh khắc/sự việc cụ thể (vẫn tính là hook).
+
+DẤU ẤN ĐỊNH VỊ (bắt buộc — không phải slogan dán cuối):
+- Trong bài có ĐÚNG một câu nhận diện, cùng ý với cauDinhVi / điểm khác biệt trong profile.
+- Được diễn lại cho khớp bài — KHÔNG copy nguyên văn cauDinhVi nếu nghe cứng; KHÔNG bịa tagline marketing mới.
+- Đặt tự nhiên (giữa hoặc gần chốt ý). CẤM kết bài kiểu slogan lặp máy + CTA bán hàng.
+- Ba bài trong một batch: dấu ấn cùng một trục định vị nhưng KHÔNG trùng nguyên một câu y hệt cả 3 bài.
+
 QUY TẮC GÓC THẬT:
 - Chỉ dùng khi cùng chủ đề / cùng bài học với trụ cột đang viết.
 - Chỉ rút Ý hoặc 1 chi tiết thật; viết lại câu chữ theo giọng profile — KHÔNG copy nguyên văn đoạn user viết dở/lủng củng.
@@ -25,7 +37,7 @@ Chỉ trả JSON array:
     "platform": "LinkedIn" | "Facebook",
     "pillar": "string",
     "content": "string",
-    "note": "string — nêu có dùng góc thật hay không và vì sao"
+    "note": "string — hook loại gì; dấu ấn định vị nằm ở đâu; có/không dùng góc thật"
   }
 ]`
 
@@ -50,5 +62,7 @@ ${JSON.stringify(profile, null, 2)}
 Lộ trình:
 ${JSON.stringify(roadmap, null, 2)}${stories}
 
-Viết 3 bài nháp chờ duyệt. Xương sống là profile + lộ trình.`
+Viết 3 bài nháp chờ duyệt.
+Xương sống: profile + lộ trình.
+Mỗi bài: hook mạnh ở câu đầu + một dấu ấn định vị (biến tấu từ cauDinhVi), không slogan cứng.`
 }
