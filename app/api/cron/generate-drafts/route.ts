@@ -145,7 +145,21 @@ async function runCron(request: Request) {
         })),
       )
 
-      const draft = await generateOneDraft(profile, roadmap, hint, ingredients)
+      const { data: recentDrafts } = await admin
+        .from('drafts')
+        .select('pillar, note, content')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(5)
+      const recentAngles = (recentDrafts || [])
+        .map((d) => `${d.pillar || ''}: ${(d.note || '').slice(0, 80)}`)
+        .filter(Boolean)
+        .join(' | ')
+      const hintWithAnti = recentAngles
+        ? `${hint}\n\nTránh trùng mũi nhọn các bài gần đây: ${recentAngles}`
+        : hint
+
+      const draft = await generateOneDraft(profile, roadmap, hintWithAnti, ingredients)
       if (!draft) {
         results.push({ userId, status: 'error', detail: 'claude_empty' })
         continue
