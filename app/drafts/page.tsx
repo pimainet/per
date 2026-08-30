@@ -92,13 +92,13 @@ export default function DraftsPage() {
           ))}
         </div>
 
-        {!loading && visible.length > 0 ? (
+        {!loading ? (
           <div className="mb-3 rounded-2xl border border-primary/15 bg-primary/5 px-3.5 py-3 text-left">
             <p className="text-xs leading-5 text-foreground/90">
               <span className="font-semibold text-primary">Mình: </span>
               {pendingCount > 0
-                ? `Có ${pendingCount} bài đang chờ bạn. Duyệt khi sẵn sàng — không cần viết từ đầu.`
-                : `Tuần này lịch ${scheduleHint}. Bài mới sẽ xuất hiện đúng ngày.`}
+                ? `Có ${pendingCount} bài đang chờ. Lịch tuần: ${scheduleHint} · ${postsPerWeek} bài/tuần (batch đầu cũng tính vào hạn mức tuần).`
+                : `Tuần này lịch ${scheduleHint} (${postsPerWeek} bài/tuần). Bài mới chỉ thêm khi còn slot và gói đang mở lịch.`}
             </p>
           </div>
         ) : null}

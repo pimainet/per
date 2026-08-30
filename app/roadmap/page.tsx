@@ -18,6 +18,8 @@ import {
 } from '@/lib/supabase/db'
 import { listIngredients } from '@/lib/supabase/ingredients'
 import { pickIngredients } from '@/lib/ingredients/pick'
+import { canRunBatch } from '@/lib/access'
+import { getUserAccess, markBatchUsed } from '@/lib/supabase/access'
 
 type Roadmap = typeof SAMPLE_ROADMAP
 
@@ -137,8 +139,15 @@ export default function RoadmapPage() {
   }
 
   async function confirm() {
-    setSaving(true)
     setError(null)
+    const access = await getUserAccess()
+    const gate = canRunBatch(access)
+    if (!gate.ok) {
+      setError(gate.reason || 'Không soạn được batch')
+      return
+    }
+
+    setSaving(true)
     const saveRes = await saveRoadmap({ ...r, postsPerWeek })
     if (!saveRes.ok && saveRes.reason === 'db_error') {
       setError(saveRes.message || 'Không lưu được lộ trình')
@@ -159,6 +168,7 @@ export default function RoadmapPage() {
         const data = await res.json()
         if (res.ok && Array.isArray(data.drafts)) {
           await replaceDraftsWith(data.drafts)
+          await markBatchUsed()
         } else {
           setError(
             (data.error || 'Chưa tạo được bài bằng AI') +

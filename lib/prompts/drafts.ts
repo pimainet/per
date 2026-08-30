@@ -8,6 +8,7 @@ THỨ TỰ ƯU TIÊN BẮT BUỘC (không đảo):
 4) Nếu thiếu (3) hoặc (3) không hợp — vẫn viết tốt từ (1)+(2), không bịa chi tiết đời tư
 5) Nếu lộ trình có tuanMau.loai (Mở vấn đề / Góc nhìn / Bằng chứng): mỗi bài khớp một lớp — không nhảy bán hàng/offer
 6) Mọi bài phải nhận ra được narrative trong profile (cauDinhVi / cauChuyen), không viết topic rời
+7) Nếu có góp ý giọng (giống/không giống): ưu tiên tránh lỗi đã nêu, bám bài được chốt "giống tôi"
 
 QUY TẮC GÓC THẬT:
 - Chỉ dùng khi cùng chủ đề / cùng bài học với trụ cột đang viết.

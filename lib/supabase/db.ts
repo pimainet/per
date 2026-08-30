@@ -99,6 +99,104 @@ export async function saveStyleProfile(profile = SAMPLE_BRAND_PROFILE, isTempora
   return { ok: true as const }
 }
 
+
+export type Ingredient = {
+  id: string
+  content: string
+  created_at: string
+}
+
+/** Góc thật — câu chuyện / bài học user gửi để AI viết sát hơn */
+export async function listIngredients() {
+  if (!isSupabaseConfigured()) {
+    return { ok: false as const, reason: 'not_configured' as const, items: [] as Ingredient[] }
+  }
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false as const, reason: 'not_logged_in' as const, items: [] as Ingredient[] }
+
+  const { data, error } = await supabase
+    .from('memories')
+    .select('id, content, created_at')
+    .eq('user_id', user.id)
+    .eq('kind', 'ingredient')
+    .order('created_at', { ascending: false })
+    .limit(50)
+
+  if (error) {
+    console.error('listIngredients', error)
+    return { ok: false as const, reason: 'db_error' as const, message: error.message, items: [] as Ingredient[] }
+  }
+  return {
+    ok: true as const,
+    items: (data || []).map((r) => ({
+      id: r.id as string,
+      content: r.content as string,
+      created_at: r.created_at as string,
+    })),
+  }
+}
+
+export async function addIngredient(content: string) {
+  const text = content.trim()
+  if (!text) return { ok: false as const, reason: 'empty' as const }
+  if (text.length > 2000) return { ok: false as const, reason: 'too_long' as const }
+
+  if (!isSupabaseConfigured()) {
+    return { ok: false as const, reason: 'not_configured' as const }
+  }
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false as const, reason: 'not_logged_in' as const }
+
+  const { data, error } = await supabase
+    .from('memories')
+    .insert({ user_id: user.id, kind: 'ingredient', content: text })
+    .select('id, content, created_at')
+    .single()
+
+  if (error) {
+    console.error('addIngredient', error)
+    return { ok: false as const, reason: 'db_error' as const, message: error.message }
+  }
+  return {
+    ok: true as const,
+    item: {
+      id: data.id as string,
+      content: data.content as string,
+      created_at: data.created_at as string,
+    },
+  }
+}
+
+export async function deleteIngredient(id: string) {
+  if (!isSupabaseConfigured()) {
+    return { ok: false as const, reason: 'not_configured' as const }
+  }
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false as const, reason: 'not_logged_in' as const }
+
+  const { error } = await supabase
+    .from('memories')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .eq('kind', 'ingredient')
+
+  if (error) {
+    console.error('deleteIngredient', error)
+    return { ok: false as const, reason: 'db_error' as const, message: error.message }
+  }
+  return { ok: true as const }
+}
+
 /** Ghi memory (phản hồi / sự kiện) */
 export async function addMemory(kind: string, content: string) {
   if (!isSupabaseConfigured()) {
@@ -484,4 +582,36 @@ function formatTime(iso: string) {
   } catch {
     return ''
   }
+}
+
+
+/** Phản hồi "giống tôi / không giống" sau duyệt */
+export async function saveDraftFeedback(
+  draftId: string,
+  similar: boolean,
+  reason?: string,
+) {
+  if (!isSupabaseConfigured()) {
+    return { ok: false as const, reason: 'not_configured' as const }
+  }
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false as const, reason: 'not_logged_in' as const }
+
+  const content = similar
+    ? `Giống tôi · draft ${draftId}`
+    : `Không giống · draft ${draftId}${reason ? ` · ${reason}` : ''}`
+
+  const { error } = await supabase.from('memories').insert({
+    user_id: user.id,
+    kind: similar ? 'voice_like' : 'voice_unlike',
+    content,
+  })
+  if (error) {
+    console.error('saveDraftFeedback', error)
+    return { ok: false as const, reason: 'db_error' as const, message: error.message }
+  }
+  return { ok: true as const }
 }

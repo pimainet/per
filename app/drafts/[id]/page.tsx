@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button'
 import { AppNav } from '@/components/app-nav'
 import { BottomNav } from '@/components/bottom-nav'
 import type { Draft } from '@/lib/mock-data'
-import { loadDrafts, updateDraftStatus } from '@/lib/supabase/db'
+import { loadDrafts, updateDraftStatus, saveDraftFeedback } from '@/lib/supabase/db'
 
 type DraftRow = Draft & { dbId?: string }
 
@@ -38,6 +38,9 @@ export default function DraftDetailPage() {
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [working, setWorking] = useState(false)
   const [remainingPending, setRemainingPending] = useState(0)
+  const [feedback, setFeedback] = useState<'like' | 'unlike' | null>(null)
+  const [unlikeReason, setUnlikeReason] = useState('')
+  const [feedbackSaved, setFeedbackSaved] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -295,6 +298,56 @@ export default function DraftDetailPage() {
             <Link href="/drafts" className="inline-block text-sm font-semibold text-primary">
               {remainingPending > 0 ? 'Duyệt bài tiếp →' : 'Về danh sách chờ duyệt →'}
             </Link>
+
+            {!feedbackSaved ? (
+              <div className="mt-4 rounded-2xl border border-border/80 bg-card px-3 py-3 text-left">
+                <p className="text-xs font-semibold text-foreground">Bài này có giống bạn không?</p>
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    className="flex-1 rounded-xl bg-primary/10 py-2 text-xs font-semibold text-primary"
+                    onClick={async () => {
+                      setFeedback('like')
+                      const id = draft?.dbId || draft?.id || ''
+                      await saveDraftFeedback(id, true)
+                      setFeedbackSaved(true)
+                    }}
+                  >
+                    Giống tôi
+                  </button>
+                  <button
+                    type="button"
+                    className="flex-1 rounded-xl bg-muted py-2 text-xs font-semibold text-muted-foreground"
+                    onClick={() => setFeedback('unlike')}
+                  >
+                    Chưa giống
+                  </button>
+                </div>
+                {feedback === 'unlike' ? (
+                  <div className="mt-2 space-y-2">
+                    <input
+                      value={unlikeReason}
+                      onChange={(e) => setUnlikeReason(e.target.value)}
+                      placeholder="Một câu: lệch ở đâu?"
+                      className="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs"
+                    />
+                    <button
+                      type="button"
+                      className="w-full rounded-xl bg-primary py-2 text-xs font-semibold text-primary-foreground"
+                      onClick={async () => {
+                        const id = draft?.dbId || draft?.id || ''
+                        await saveDraftFeedback(id, false, unlikeReason)
+                        setFeedbackSaved(true)
+                      }}
+                    >
+                      Gửi góp ý
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <p className="mt-3 text-xs text-muted-foreground">Đã ghi nhận — lần soạn sau mình sẽ bám hơn.</p>
+            )}
           </div>
         )}
       </div>
