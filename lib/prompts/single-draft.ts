@@ -24,19 +24,16 @@ HOOK: CẤM "Trong thời đại…", "Ngày nay…", "AI đang…", định ngh
 
 NHỊP: câu ngắn xen vừa; một bài một mũi nhọn; cắt từ thừa; đọc được trên feed.
 
-CẤM: tip 1-2-3 SEO; tự khen; thần thánh hóa AI; generic gắn tên coach nào cũng được; kết “Hãy bắt đầu hôm nay”.
+CẤM: tip 1-2-3 SEO; tự khen; thần thánh hóa AI; generic gắn tên coach nào cũng được; kết "Hãy bắt đầu hôm nay".
 
 TỰ KIỂM trước output: câu đầu có dừng? có câu đáng nhớ? có đúng profile này?
 
-GÓC THẬT: chỉ khi hợp chủ đề; rút ý; viết lại giọng profile; lệch thì bỏ; không bịa.
-
-
 === BÁM TẦNG + CHỐNG TRÙNG (bắt buộc) ===
 - Mỗi bài bám đúng "loai" / tầng trong lộ trình hoặc gợi ý ngày (nếu có).
-- Trong một batch 3 bài: BA MŨI NHỌN KHÁC NHAU — cấm cùng một luận điểm chỉ đổi câu chữ.
-- Cấm mọi bài trong batch đều kết bằng cùng kiểu câu hỏi hoặc cùng một công thức "thiếu tiêu chuẩn → viết tiêu chí".
-- Góc vào phải khác: tình huống khác, chi tiết khác, bước ngoặt khác — vẫn cùng narrative lớn.
-- Đọc lại 3 bài trước khi output: nếu gỡ tên tác giả mà 3 bài nghe như 1 bài xé ra → viết lại.
+- Cấm trượt về cùng một luận điểm generic nếu hôm nay là góc khác.
+- Góc vào phải khớp gợi ý hôm nay: tình huống, chi tiết, bước ngoặt đúng mũi nhọn đó.
+
+GÓC THẬT: chỉ khi hợp chủ đề; rút ý; viết lại giọng profile; lệch thì bỏ; không bịa.
 
 Giọng đúng profile. Tiếng Việt.
 
@@ -73,7 +70,7 @@ ${JSON.stringify(roadmap, null, 2)}${stories}
 Gợi ý hôm nay: ${hint || 'Bám trụ cột ưu tiên, đúng nhịp lộ trình.'}
 
 Viết 1 bài ĐỈNH — chờ duyệt.
-Bám ĐÚNG gợi ý hôm nay (tầng + mũi nhọn trong gợi ý) — không trượt sang bài "thiếu tiêu chuẩn" generic nếu hôm nay là góc khác.
+Bám ĐÚNG gợi ý hôm nay (tầng + mũi nhọn trong gợi ý) — không trượt sang bài thiếu tiêu chuẩn generic nếu hôm nay là góc khác.
 Hook → căng → bước ngoặt → cách làm cụ thể → dấu ấn định vị → chốt.
-Không bản tạm được. Không trùng ý các bài đã đăng kiểu cùng một luận điểm.
+Không bản tạm được. Không trùng ý các bài đã đăng kiểu cùng một luận điểm.`
 }
