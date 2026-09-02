@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, FileText, Map, Sparkles, User } from 'lucide-react'
+import { ArrowRight, FileText, ImageIcon, Map, Sparkles, User } from 'lucide-react'
 
 import {
   companionGreeting,
@@ -182,11 +182,13 @@ export default function WelcomePage() {
         </Link>
 
         {/* Quick nav — large touch targets */}
-        <div className="grid grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
           {[
             { href: '/brand-profile', label: 'Hồ sơ', icon: User },
+            { href: '/goc-that', label: 'Góc thật', icon: BookOpen },
             { href: '/roadmap', label: 'Lộ trình', icon: Map },
             { href: '/drafts', label: 'Chờ duyệt', icon: FileText },
+            { href: '/nhan-dien', label: 'Ảnh', icon: ImageIcon },
           ].map((item) => (
             <Link
               key={item.href}

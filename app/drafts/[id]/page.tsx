@@ -41,6 +41,7 @@ export default function DraftDetailPage() {
   const [feedback, setFeedback] = useState<'like' | 'unlike' | null>(null)
   const [unlikeReason, setUnlikeReason] = useState('')
   const [feedbackSaved, setFeedbackSaved] = useState(false)
+  const [imageError, setImageError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -54,6 +55,9 @@ export default function DraftDetailPage() {
           setDraft(found)
           setContent(found.content)
           setApproved(found.status === 'approved')
+          if ((found as { imageUrl?: string }).imageUrl) {
+            setImageUrl((found as { imageUrl?: string }).imageUrl || null)
+          }
         }
         setRemainingPending(
           result.drafts.filter(
@@ -100,12 +104,30 @@ export default function DraftDetailPage() {
     setIsEditing(false)
   }
 
-  function generateImage() {
+  async function generateImage() {
+    if (!draft) return
     setImageLoading(true)
-    window.setTimeout(() => {
-      setImageLoading(false)
-      setImageUrl('/placeholder.jpg')
-    }, 1100)
+    setImageError(null)
+    try {
+      const res = await fetch('/api/images/generate', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          draftId: draft.dbId,
+          content,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setImageError(data.error || 'Không tạo được ảnh')
+        setImageLoading(false)
+        return
+      }
+      setImageUrl(data.imageUrl)
+    } catch {
+      setImageError('Lỗi kết nối khi tạo ảnh')
+    }
+    setImageLoading(false)
   }
 
   if (loading) {
@@ -222,8 +244,14 @@ export default function DraftDetailPage() {
               </div>
               <Button variant="outline" size="sm" className="rounded-xl" onClick={generateImage} disabled={imageLoading}>
                 <ImageIcon className="size-4" />
-                {imageLoading ? 'Đang tạo...' : 'Tạo ảnh'}
+                {imageLoading ? 'Đang tạo...' : 'Gợi ý ảnh'}
               </Button>
+              <Link href="/nhan-dien" className="text-[11px] font-medium text-muted-foreground underline-offset-2 hover:underline">
+                Nhận diện ảnh
+              </Link>
+              {imageError ? (
+                <p className="basis-full text-xs text-destructive">{imageError}</p>
+              ) : null}
             </div>
             {imageUrl ? (
               <div className="mt-4 space-y-2">

@@ -510,7 +510,7 @@ export async function loadDrafts(): Promise<
 
   const { data, error } = await supabase
     .from('drafts')
-    .select('id, platform, pillar, content, note, status, created_at')
+    .select('id, platform, pillar, content, note, status, created_at, image_url')
     .eq('user_id', user.id)
     .neq('status', 'deleted')
     .order('created_at', { ascending: false })
@@ -533,6 +533,7 @@ export async function loadDrafts(): Promise<
     content: row.content as string,
     note: (row.note as string) || '',
     status: (row.status as Draft['status']) || 'pending',
+    imageUrl: (row.image_url as string) || undefined,
   }))
 
   return { ok: true, drafts }
