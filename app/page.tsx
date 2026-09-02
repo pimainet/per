@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, FileText, ImageIcon, Map, Sparkles, User } from 'lucide-react'
+import { ArrowRight, BookOpen, FileText, ImageIcon, Map, Sparkles, User } from 'lucide-react'
 
 import {
   companionGreeting,
