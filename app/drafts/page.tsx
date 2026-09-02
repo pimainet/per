@@ -97,8 +97,8 @@ export default function DraftsPage() {
             <p className="text-xs leading-5 text-foreground/90">
               <span className="font-semibold text-primary">Mình: </span>
               {pendingCount > 0
-                ? `Có ${pendingCount} bài đang chờ. Lịch tuần: ${scheduleHint} · ${postsPerWeek} bài/tuần (batch đầu cũng tính vào hạn mức tuần).`
-                : `Tuần này lịch ${scheduleHint} (${postsPerWeek} bài/tuần). Bài mới chỉ thêm khi còn slot và gói đang mở lịch.`}
+                ? `Có ${pendingCount} bài đang chờ. Lịch tuần: ${scheduleHint} · ${postsPerWeek} bài/tuần (lịch tự soạn thêm các ngày còn lại trong tuần (sau khi duyệt)).`
+                : `Tuần này lịch ${scheduleHint} (${postsPerWeek} bài/tuần). Bài lịch chỉ thêm đúng ngày nhịp, khi gói đã mở (paid) và còn slot tuần.`}
             </p>
           </div>
         ) : null}

@@ -74,7 +74,7 @@ async function runCron(request: Request) {
       .maybeSingle()
     const access = normalizeAccess(accessRow)
     if (!canRunCron(access)) {
-      results.push({ userId, status: 'skip', detail: 'not_paid' })
+      results.push({ userId, status: 'skip', detail: `not_paid (level=${access.accessLevel})` })
       continue
     }
 
@@ -109,15 +109,21 @@ async function runCron(request: Request) {
       continue
     }
 
-    // Đếm bài đã tạo tuần này
+    // Hạn tuần: chỉ đếm bài TỰ TẠO THEO LỊCH (cron), không tính batch đầu khi khóa lộ trình.
+    // Batch đầu = "mồi" để duyệt; cron mới giữ nhịp các ngày còn lại trong tuần.
     const { count: weekCount } = await admin
       .from('drafts')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
       .gte('created_at', weekStart.toISOString())
+      .ilike('note', '%theo lịch%')
 
     if ((weekCount ?? 0) >= postsPerWeek) {
-      results.push({ userId, status: 'skip', detail: 'week_quota_full' })
+      results.push({
+        userId,
+        status: 'skip',
+        detail: `week_quota_full (${weekCount}/${postsPerWeek} scheduled)`,
+      })
       continue
     }
 
@@ -125,10 +131,16 @@ async function runCron(request: Request) {
     const todayLabel = vnWeekdayLabel()
     const tuanMau = (roadmap as { tuanMau?: { ngay?: string; goiY?: string; loai?: string }[] })
       .tuanMau
-    const slot = tuanMau?.find((t) => t.ngay && todayLabel.includes(t.ngay.replace('Thứ ', '')))
+    const slot = tuanMau?.find((t) => {
+      if (!t.ngay) return false
+      const a = t.ngay.replace(/\s/g, '').toLowerCase()
+      const b = todayLabel.replace(/\s/g, '').toLowerCase()
+      return a === b || a.includes(b) || b.includes(a)
+    })
+    const scheduledLeft = postsPerWeek - (weekCount ?? 0)
     const hint = slot
       ? `${slot.loai || ''} — ${slot.goiY || ''}`
-      : `Nhịp ${postsPerWeek} bài/tuần · hôm nay ${todayLabel}`
+      : `Nhịp ${postsPerWeek} bài/tuần · hôm nay ${todayLabel} · còn ~${scheduledLeft} slot lịch tuần này`
 
     try {
       const { data: ingRows } = await admin
