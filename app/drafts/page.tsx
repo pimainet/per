@@ -21,6 +21,28 @@ export default function DraftsPage() {
   const [scheduleHint, setScheduleHint] = useState('T2 · T4 · T6')
   const [postsPerWeek, setPostsPerWeek] = useState(3)
   const [pendingCount, setPendingCount] = useState(0)
+  const [syncing, setSyncing] = useState(false)
+  const [syncMsg, setSyncMsg] = useState<string | null>(null)
+
+  async function runScheduleNow() {
+    setSyncing(true)
+    setSyncMsg(null)
+    try {
+      const res = await fetch('/api/drafts/run-schedule', { method: 'POST' })
+      const data = await res.json()
+      setSyncMsg(data.message || data.detail || data.error || 'Xong')
+      if (data.ok) {
+        const result = await loadDrafts()
+        if (result.ok) {
+          setDrafts(result.drafts)
+          setPendingCount(result.drafts.filter((d) => d.status === 'pending').length)
+        }
+      }
+    } catch {
+      setSyncMsg('Lỗi kết nối')
+    }
+    setSyncing(false)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -93,13 +115,24 @@ export default function DraftsPage() {
         </div>
 
         {!loading ? (
-          <div className="mb-3 rounded-2xl border border-primary/15 bg-primary/5 px-3.5 py-3 text-left">
+          <div className="mb-3 space-y-2 rounded-2xl border border-primary/15 bg-primary/5 px-3.5 py-3 text-left">
             <p className="text-xs leading-5 text-foreground/90">
               <span className="font-semibold text-primary">Mình: </span>
               {pendingCount > 0
-                ? `Có ${pendingCount} bài đang chờ. Lịch tuần: ${scheduleHint} · ${postsPerWeek} bài/tuần (lịch tự soạn thêm các ngày còn lại trong tuần (sau khi duyệt)).`
-                : `Tuần này lịch ${scheduleHint} (${postsPerWeek} bài/tuần). Bài lịch chỉ thêm đúng ngày nhịp, khi gói đã mở (paid) và còn slot tuần.`}
+                ? `Có ${pendingCount} bài chờ duyệt. Lịch: ${scheduleHint} · ${postsPerWeek} bài/tuần.`
+                : `Chưa có bài chờ. Lịch ${scheduleHint} (${postsPerWeek}/tuần). Cần gói paid + đúng ngày nhịp.`}
             </p>
+            <button
+              type="button"
+              onClick={runScheduleNow}
+              disabled={syncing}
+              className="text-xs font-semibold text-primary underline-offset-2 hover:underline disabled:opacity-60"
+            >
+              {syncing ? 'Đang kiểm tra lịch…' : 'Lấy bài theo lịch hôm nay'}
+            </button>
+            {syncMsg ? (
+              <p className="text-[11px] leading-4 text-muted-foreground">{syncMsg}</p>
+            ) : null}
           </div>
         ) : null}
 
