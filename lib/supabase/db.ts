@@ -240,7 +240,11 @@ export async function getUserProgress(): Promise<UserProgress> {
   const [profileRes, roadmapRes, draftsRes] = await Promise.all([
     supabase.from('brand_profiles').select('locked').eq('user_id', user.id).maybeSingle(),
     supabase.from('roadmaps').select('id').eq('user_id', user.id).maybeSingle(),
-    supabase.from('drafts').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
+    supabase
+      .from('drafts')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('status', 'pending'),
   ])
 
   return {
@@ -499,14 +503,14 @@ export async function loadDrafts(): Promise<
   | { ok: false; reason: string; message?: string }
 > {
   if (!isSupabaseConfigured()) {
-    return { ok: true, drafts: SAMPLE_DRAFTS }
+    return { ok: true, drafts: [] }
   }
 
   const supabase = createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return { ok: true, drafts: SAMPLE_DRAFTS }
+  if (!user) return { ok: true, drafts: [] }
 
   const { data, error } = await supabase
     .from('drafts')
@@ -532,7 +536,7 @@ export async function loadDrafts(): Promise<
     time: formatTime(row.created_at as string),
     content: row.content as string,
     note: (row.note as string) || '',
-    status: (row.status as Draft['status']) || 'pending',
+    status: (row.status === 'approved' ? 'approved' : 'pending') as Draft['status'],
     imageUrl: (row.image_url as string) || undefined,
   }))
 

@@ -29,7 +29,7 @@ export default function DraftsPage() {
       if (cancelled) return
       if (result.ok) {
         setDrafts(result.drafts)
-        setPendingCount(result.drafts.filter((d) => d.status !== 'approved').length)
+        setPendingCount(result.drafts.filter((d) => d.status === 'pending').length)
       }
       if (rm.ok && !rm.empty && rm.data) {
         const n = parsePostsPerWeek(rm.data)
@@ -46,7 +46,7 @@ export default function DraftsPage() {
   }, [])
 
   const visible = drafts.filter((d) => {
-    if (filter === 'pending') return d.status !== 'approved'
+    if (filter === 'pending') return d.status === 'pending'
     if (filter === 'all') return true
     return d.platform === filter
   })

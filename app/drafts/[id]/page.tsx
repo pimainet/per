@@ -61,7 +61,7 @@ export default function DraftDetailPage() {
         }
         setRemainingPending(
           result.drafts.filter(
-            (d) => d.status !== 'approved' && (d.dbId || d.id) !== params.id,
+            (d) => d.status === 'pending' && (d.dbId || d.id) !== params.id,
           ).length,
         )
       }

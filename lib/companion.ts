@@ -33,7 +33,7 @@ export function companionMessage(ctx: CompanionContext): string {
     return 'Định vị đã rõ. Bước tiếp theo: lộ trình giai đoạn — để mỗi bài không bị rời rạc.'
   }
   if (ctx.draftCount > 0) {
-    return `Có ${ctx.draftCount} bài đang chờ bạn. Duyệt khi sẵn sàng — không cần viết từ đầu.`
+    return `Có ${ctx.draftCount} bài chờ duyệt. Duyệt khi sẵn sàng — không cần viết từ đầu.`
   }
   return 'Mình vẫn ở đây. Thương hiệu xây bằng nhịp đều, không bằng ngày bùng nổ.'
 }
