@@ -98,10 +98,13 @@ export async function POST(request: Request) {
     },
     body: JSON.stringify({
       model: MODEL,
-      prompt,
+      prompt: prompt.slice(0, 3900),
       n: 1,
       size: '1024x1024',
-      quality: MODEL.includes('dall-e') ? 'standard' : undefined,
+      // natural = bớt “AI poster”; hd = nét hơn (dall-e-3)
+      ...(MODEL.includes('dall-e')
+        ? { quality: 'hd', style: 'natural' }
+        : {}),
     }),
   })
 
