@@ -20,6 +20,7 @@ import { listIngredients } from '@/lib/supabase/ingredients'
 import { pickIngredients } from '@/lib/ingredients/pick'
 import { canRunBatch } from '@/lib/access'
 import { getUserAccess, markBatchUsed } from '@/lib/supabase/access'
+import { buildWeekPreview, nhipLabel, type TuanMauRow } from '@/lib/roadmap-pace'
 
 type Roadmap = typeof SAMPLE_ROADMAP
 
@@ -126,7 +127,15 @@ export default function RoadmapPage() {
     setSavingPace(true)
     setPaceMsg(null)
     setError(null)
-    const saveRes = await saveRoadmap({ ...r, postsPerWeek })
+    const week = buildWeekPreview(postsPerWeek, (r.tuanMau || []) as TuanMauRow[])
+    const payload = {
+      ...r,
+      postsPerWeek,
+      nhip: nhipLabel(postsPerWeek),
+      tuanMau: week,
+    }
+    setR(payload as Roadmap)
+    const saveRes = await saveRoadmap(payload)
     setSavingPace(false)
     if (!saveRes.ok && saveRes.reason === 'db_error') {
       setError(saveRes.message || 'Không lưu được nhịp đăng')
@@ -252,73 +261,19 @@ export default function RoadmapPage() {
           </div>
         </header>
 
-        <div className="flex flex-col gap-4 py-6">
+        <div className="flex flex-col gap-3 py-5">
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-          <section className="card-elevated overflow-hidden">
-            <div className="bg-primary px-5 py-5 text-primary-foreground">
-              <p className="text-[11px] font-semibold tracking-[0.14em] uppercase opacity-80">
-                Giai đoạn hiện tại
-              </p>
-              <h2 className="mt-2 text-xl font-semibold tracking-tight">{r.tenGiaiDoan}</h2>
-              <p className="mt-2 text-sm leading-6 opacity-90">{r.mucTieu}</p>
-              <p className="mt-3 text-xs opacity-75">Thời gian: {r.thoiGian}</p>
-            </div>
-          </section>
-
-          <section className="card-elevated p-5">
-            <h3 className="text-sm font-semibold">Trụ cột ưu tiên</h3>
-            <div className="mt-3 space-y-3">
-              {(r.truCot || []).map((t, i) => (
-                <div key={t.ten + i} className="rounded-xl bg-muted/70 p-3.5">
-                  <p className="text-xs font-semibold text-primary">Trụ cột {i + 1}</p>
-                  <p className="mt-1 text-sm font-medium">{t.ten}</p>
-                  <p className="mt-1 text-xs leading-5 text-muted-foreground">{t.lyDo}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="card-elevated p-5">
-            <h3 className="text-sm font-semibold">Nhịp đăng</h3>
-            <p className="mt-2 text-sm leading-6">
-              <span className="font-medium">{r.nhip}</span>
-              <span className="text-muted-foreground"> · {r.tyLe}</span>
-            </p>
-          </section>
-
-          <section className="card-elevated p-5">
-            <h3 className="text-sm font-semibold">Khung tuần mẫu</h3>
-            <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
-              Mỗi ô là một lớp dẫn dắt: Mở vấn đề · Góc nhìn · Bằng chứng — xoay quanh câu chuyện lớn của bạn.
-            </p>
-            <div className="mt-3 space-y-2">
-              {(r.tuanMau || []).map((row, i) => (
-                <div
-                  key={row.ngay + i}
-                  className="flex gap-3 rounded-xl border border-border/70 bg-background/60 p-3.5 text-sm"
-                >
-                  <div className="w-14 shrink-0 font-semibold text-primary">{row.ngay}</div>
-                  <div>
-                    <p className="font-medium">
-                      {row.loai} · {row.truCot}
-                    </p>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">{row.goiY}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="card-elevated p-5">
+          {/* 1. Nhịp — lên đầu, đổi = cập nhật khung tuần ngay (local, 0 API) */}
+          <section className="card-elevated p-4">
             <h3 className="text-sm font-semibold">Nhịp viết mỗi tuần</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Hệ thống tự soạn bài theo lịch. Bạn chỉ cần duyệt.
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              Đổi nhịp → khung tuần đổi ngay. Chỉ tốn DB khi bấm Lưu nhịp — không gọi AI.
             </p>
             <div className="mt-3 grid grid-cols-3 gap-2">
               {[
-                { n: 3, label: '3 bài', sub: 'Nhẹ' },
-                { n: 5, label: '5 bài', sub: 'Vừa' },
+                { n: 3, label: '3 bài', sub: 'T2 · 4 · 6' },
+                { n: 5, label: '5 bài', sub: 'T2–T6' },
                 { n: 7, label: '7 bài', sub: 'Mỗi ngày' },
               ].map((opt) => (
                 <button
@@ -326,6 +281,13 @@ export default function RoadmapPage() {
                   type="button"
                   onClick={() => {
                     setPostsPerWeek(opt.n)
+                    const week = buildWeekPreview(opt.n, (r.tuanMau || []) as TuanMauRow[])
+                    setR((prev) => ({
+                      ...prev,
+                      postsPerWeek: opt.n,
+                      nhip: nhipLabel(opt.n),
+                      tuanMau: week,
+                    }))
                     if (savedPostsPerWeek !== null && opt.n !== savedPostsPerWeek) {
                       setPaceSaved(false)
                       setPaceMsg(null)
@@ -333,26 +295,79 @@ export default function RoadmapPage() {
                       setPaceSaved(true)
                     }
                   }}
-                  className={`rounded-2xl border px-2 py-3 text-center transition ${
+                  className={`rounded-2xl border px-2 py-2.5 text-center transition ${
                     postsPerWeek === opt.n
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-border/80 bg-background text-muted-foreground'
                   }`}
                 >
                   <span className="block text-sm font-semibold">{opt.label}</span>
-                  <span className="mt-0.5 block text-[11px] opacity-80">{opt.sub}</span>
+                  <span className="mt-0.5 block text-[10px] opacity-80">{opt.sub}</span>
                 </button>
               ))}
             </div>
-            <p className="mt-3 text-[11px] leading-5 text-muted-foreground">
-              Ví dụ 3 bài: Thứ 2 · 4 · 6. Không tạo thêm nếu còn ≥5 bài chờ duyệt.
-            </p>
           </section>
 
-          <section className="card-elevated p-5">
-            <h3 className="text-sm font-semibold">Rủi ro cần lưu ý</h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">{r.ruiRo}</p>
+          {/* 2. Giai đoạn — gọn */}
+          <section className="card-elevated overflow-hidden">
+            <div className="bg-primary px-4 py-4 text-primary-foreground">
+              <p className="text-[10px] font-semibold tracking-[0.12em] uppercase opacity-80">
+                Giai đoạn
+              </p>
+              <h2 className="mt-1 text-lg font-semibold tracking-tight">{r.tenGiaiDoan}</h2>
+              <p className="mt-1.5 text-xs leading-5 opacity-90 line-clamp-2">{r.mucTieu}</p>
+            </div>
           </section>
+
+          {/* 3. Trụ cột — chỉ tên, bỏ đoạn lý do dài */}
+          <section className="card-elevated p-4">
+            <h3 className="text-sm font-semibold">Trụ cột</h3>
+            <ul className="mt-2 flex flex-wrap gap-1.5">
+              {(r.truCot || []).slice(0, 5).map((t, i) => (
+                <li
+                  key={t.ten + i}
+                  className="rounded-full bg-muted/80 px-2.5 py-1 text-[11px] font-medium text-foreground"
+                >
+                  {t.ten}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {/* 4. Khung tuần — theo nhịp đã chọn */}
+          <section className="card-elevated p-4">
+            <div className="flex items-baseline justify-between gap-2">
+              <h3 className="text-sm font-semibold">Khung tuần</h3>
+              <span className="text-[11px] font-medium text-primary">{nhipLabel(postsPerWeek)}</span>
+            </div>
+            <div className="mt-2 space-y-1.5">
+              {buildWeekPreview(postsPerWeek, (r.tuanMau || []) as TuanMauRow[]).map((row, i) => (
+                <div
+                  key={row.ngay + i}
+                  className="flex gap-2.5 rounded-xl border border-border/60 bg-background/60 px-3 py-2 text-sm"
+                >
+                  <div className="w-12 shrink-0 text-xs font-semibold text-primary">{row.ngay}</div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium leading-snug">
+                      {row.loai}
+                      {row.truCot ? ` · ${row.truCot}` : ''}
+                    </p>
+                    <p className="mt-0.5 line-clamp-2 text-[11px] leading-4 text-muted-foreground">
+                      {row.goiY}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Rủi ro — thu gọn 2 dòng */}
+          {r.ruiRo ? (
+            <p className="px-1 text-[11px] leading-4 text-muted-foreground line-clamp-2">
+              <span className="font-semibold text-foreground/80">Lưu ý: </span>
+              {r.ruiRo}
+            </p>
+          ) : null}
         </div>
       </div>
 
